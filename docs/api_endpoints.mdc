@@ -1,0 +1,87 @@
+# API Endpoints – Bike Rental System (v1.0)
+
+All protected endpoints require `Authorization: Bearer <accessToken>` and must scope queries by `hotelId` from JWT (client must not send/override hotel ids). Errors: expired/invalid token → 401 → frontend clears token and redirects to `/login`.
+
+## Auth
+- `POST /api/auth/login`
+  - Req: `hotelCode`, `password`.
+  - Res 200: `{ "accessToken": "...", "hotelName": "SteelHouse Copenhagen" }`
+  - Errors: 401/400 with generic message (no hint which credential failed).
+  - **Implementation:** Password verified against bcrypt hash (cost 10+). JWT expiry 8–12 hours. HTTPS required in production.
+
+## Home Overview
+- `GET /api/overview`
+  - Res 200: counts for bikes (available/rented/ooo) and rentals (active/overdue) plus `activeRentals` array with rental id, room/bed, dueAt, status, bikesOut, bikesTotal.
+
+## Bikes
+- `GET /api/bikes?status=&q=` – list bikes; filter by status and/or search query (bike number).
+- `PATCH /api/bikes/{bikeId}/ooo`
+  - Req: `{ "note": "Flat tire" }`
+  - Res: bike with `status = OOO`, `oooNote`, `oooSince`.
+- `PATCH /api/bikes/{bikeId}/available`
+  - Rule: must fail if bike is part of a RENTED rental item.
+
+## Rentals – Draft & Finalize
+- `POST /api/rentals/drafts`
+  - Res 201: `{ "draftId": "d-abc123", "assignedBikes": [] }`
+- `POST /api/rentals/drafts/{draftId}/bikes`
+  - Req: `{ "bikeNumber": "5" }`
+  - Res: draft with assigned bikes list.
+  - Errors: 404 if bike not found; 409 if bike OOO or already rented.
+- `DELETE /api/rentals/drafts/{draftId}/bikes/{bikeId}` – remove bike from draft.
+- `POST /api/rentals/drafts/{draftId}/finalize`
+  - Req: `{ "roomNumber", "bedNumber" (nullable), "returnDate", "returnTime", "tncVersion", "signatureBase64Png" }`
+  - Res 201: rental with id, status ACTIVE, startAt, dueAt, room/bed (bed may be null), bikes list (bikeId/number/status).
+  - Errors: fail if any bike becomes unavailable between assignment and finalize.
+
+## Rentals – Lists & Detail
+- `GET /api/rentals?status=ACTIVE|OVERDUE|CLOSED`
+  - Res: list with rentalId, room/bed, startAt, dueAt, status, bikesOut, bikesTotal.
+- `GET /api/rentals/{rentalId}`
+  - Res: rental detail with id, room/bed (bed may be null), startAt, dueAt, status, items (rentalItemId, bikeId/number, status, returnedAt, lostReason), and signature reference/URL for staff review.
+- `GET /api/rentals/{rentalId}/contract`
+  - Res: full contract document (e.g., PDF/HTML) including bike list, room/bed, start/due/return times, T&C version, and embedded signature so staff can open and review the signed contract.
+
+## Rentals – Returns
+- `POST /api/rentals/{rentalId}/items/{rentalItemId}/return`
+  - Res: rental/item status summary, returnedAt; rentalStatus may become CLOSED when all returned/lost.
+- `POST /api/rentals/{rentalId}/return-selected`
+  - Req: `{ "rentalItemIds": [ ... ] }`
+  - Res: `{ "rentalId": ..., "returnedItemIds": [...], "rentalStatus": "ACTIVE|OVERDUE|CLOSED" }`
+- `POST /api/rentals/{rentalId}/return-all`
+  - Res: rentalId, `rentalStatus = CLOSED`, `returnAt`.
+
+## Rentals – Mark Lost
+- `POST /api/rentals/{rentalId}/items/{rentalItemId}/lost`
+  - Req: `{ "reason": "Key lost" }`
+  - Res: rental/item status summary with lostReason; rentalStatus recalculated.
+
+## Signatures
+- `GET /api/rentals/{rentalId}/signature`
+  - Res: signature image/blob or URL so staff can view the signed contract post-creation.
+
+## Maintenance Export
+- `GET /api/maintenance/ooo/export`
+  - Res: CSV of current OOO bikes with columns `bike_number`, `bike_type`, `ooo_note`, `ooo_since_date`.
+
+---
+
+## Post-MVP Endpoints (Architecture Ready)
+
+These endpoints are not implemented in MVP but the schema supports them.
+
+### Settings
+- `GET /api/settings`
+  - Res: `{ "rentalDurationOptions": [24, 48, 72], "graceMinutes": 0, "tncText": "...", "tncVersion": "v1" }`
+- `PATCH /api/settings`
+  - Req: `{ "rentalDurationOptions"?: [...], "graceMinutes"?: int, "tncText"?: "..." }`
+  - Res: updated settings object.
+  - Note: Updating `tncText` should auto-increment `tncVersion`.
+
+### Bike Management
+- `POST /api/bikes`
+  - Req: `{ "bikeNumber": "42", "bikeType": "ADULT" }`
+  - Res 201: created bike object.
+  - Rule: `bikeNumber` must be unique within hotel.
+- `DELETE /api/bikes/{bikeId}`
+  - Rule: must fail if bike has any rental history (soft-delete or archive instead).
