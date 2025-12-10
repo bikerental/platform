@@ -1,3 +1,6 @@
+---
+alwaysApply: false
+---
 # Requirements – Bike Rental System (v1.0)
 
 ## Scope
@@ -26,6 +29,8 @@
   - Not OOO and no RENTED item → bike AVAILABLE.
 - Signature must reflect the final bike list and T&C version at signing time.
 
+> See `db_schema.mdc` for technical constraint implementation details (I1-I5).
+
 ## Design for Forgiveness
 - Per-bike actions (return, mark lost); contract-level return-all when applicable.
 - Confirmation dialogs for critical actions with rental/bike context.
@@ -35,15 +40,13 @@
 
 ## Login & Authentication
 - POST `/api/auth/login` with hotel code + password; returns JWT containing hotelId/hotelCode/exp and hotel name.
-- Protected calls require `Authorization: Bearer <token>`; backend must not trust client-sent hotel identifiers—derive from JWT.
 - Failed login shows generic error (no credential hinting).
-- Token expiry handled via HTTP 401; frontend clears token and redirects to `/login`.
-
-### Implementation Notes
 - **Token lifetime:** 8–12 hours (covers one staff shift); forces daily re-authentication.
-- **Password hashing:** bcrypt with cost factor 10+ (never store plaintext).
 - **HTTPS:** Required in production; JWT must only travel over encrypted connections.
 - **Future:** Individual staff accounts for audit trails (who performed which action). Out of scope for MVP.
+
+> See `api_rules.mdc` for detailed auth handling (401 responses, hotel ID derivation from JWT).
+> See `db_schema.mdc` for password hashing requirements.
 
 ## Home Screen
 - Summary counts scoped to hotel: bikes AVAILABLE/RENTED/OOO; rentals ACTIVE/OVERDUE. Counts refresh after data changes.
@@ -52,9 +55,11 @@
 - Simple search/filter by at least one of room number, bike number, or rental id.
 
 ## Starting a Rental (Single iPad)
-### Staff Mode – Draft & Assign Bikes
-- “New rental” creates draft with hotel_id and empty bike list.
-- Add bike by number: lookup within hotel; errors for not found, RENTED, or OOO; only AVAILABLE bikes allowed; no duplicates.
+> **Note:** No backend "draft" entity. Bike assignment is managed in frontend state; backend validates availability atomically at rental creation.
+
+### Staff Mode – Assign Bikes
+- "New rental" opens bike assignment screen (frontend state only, no backend call).
+- Add bike by number: validate via API lookup; errors for not found, RENTED, or OOO; only AVAILABLE bikes allowed; no duplicates in local list.
 - Display assigned bikes; allow removal before guest mode.
 - Cannot proceed to guest mode without at least one bike.
 - “Continue & hand to guest” switches to guest mode and hides staff navigation.
@@ -65,11 +70,13 @@
 - Validation: return time in future; room_number non-empty; bed_number may be null; signature must be present.
 - On confirm: require ≥1 bike, valid form, signature; show clear errors while preserving inputs on failure.
 
-### Finalize Draft → Active Rental
-- On success: store signature (get signature_id); compute start_at = now; compute due_at from return date/time; determine tnc_version.
+### Create Rental (Atomic)
+- On confirm: call `POST /api/rentals` with all data (bike numbers, room/bed, return datetime, T&C version, signature).
+- Backend validates all bikes still AVAILABLE (not RENTED/OOO); if any unavailable, return 409 with details.
+- On success: store signature, compute start_at = now (UTC), due_at from return datetime.
 - Create Rental (status ACTIVE) with room/bed, tnc_version, signature_id, start_at, due_at.
-- For each assigned bike: create RentalItem with status RENTED, returned_at null, lost_reason null; set bike status RENTED.
-- All changes atomic; if any bike becomes unavailable between assignment and finalize, refuse and keep draft for review.
+- For each assigned bike: create RentalItem with status RENTED; set bike status RENTED.
+- All changes atomic in single transaction.
 - After success: show “Rental created” confirmation; rental appears in Home Screen Active list.
 
 ## Rental Detail (Staff Mode)
@@ -137,8 +144,8 @@ The system architecture supports hotel-level configuration. MVP uses hardcoded d
 ## React Routes (MVP)
 - `/login` – hotel credential login; on success, store JWT and redirect to `/`.
 - `/` – home overview (counts + active/overdue list); click rental to detail.
-- `/rentals/new` – staff draft creation + bike assignment.
-- `/rentals/new/guest` – guest mode form + T&C + signature; confirm → finalize → redirect to `/rentals/:id`.
+- `/rentals/new` – staff bike assignment (frontend state).
+- `/rentals/new/guest` – guest mode form + T&C + signature; confirm → create rental → redirect to `/rentals/:id`.
 - `/rentals/:id` – rental detail with per-bike actions, multi-return, return-all.
 - `/bikes` – inventory view: search by bike number, filter by status, mark OOO/fixed (not if actively rented).
 - `/maintenance` – optional; can be `/bikes?status=OOO`; export OOO to CSV.

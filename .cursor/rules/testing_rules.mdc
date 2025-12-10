@@ -1,0 +1,13 @@
+---
+description: Testing guidance for backend and frontend.
+globs: ["src/test/java/**", "frontend/src/**/*.{test,spec}.*"]
+alwaysApply: false
+---
+
+# Testing Rules
+
+- Prioritize service-layer unit tests for business rules: rental creation with multiple bikes, partial returns, return-all, mark lost, OOO/availability guards, status derivation, invariant I1 (one RENTED per bike).
+- Use mocks for repositories/clock/JWT context in unit tests; integration tests can use in-memory DB or testcontainers.
+- Cover error paths: race when bike becomes unavailable, 409 conflicts, validation failures.
+- Frontend: component tests for critical flows (draft creation form validation, guest confirm, returns dialogs) where feasible; keep tests focused and small.
+- Avoid brittle implementation checks; assert behaviors/outputs and status transitions.

@@ -2,7 +2,8 @@
 
 ## Stack & Scope
 - MySQL, Spring Data JPA, Java 21. Hotel scoping comes from JWT; every persisted record must carry or be resolvable to `hotel_id`.
-- Core entities: Hotel, HotelSettings, Bike, Rental, RentalItem, Signature. RentalDraft is a transient concept but may be persisted to support the single-iPad flow.
+- Core entities: Hotel, HotelSettings, Bike, Rental, RentalItem, Signature.
+- **Note:** No RentalDraft entity. Bike assignment during rental creation is managed in frontend state; backend validates availability atomically at rental creation.
 
 ## Entities
 
@@ -49,17 +50,10 @@
 - `lost_reason` (string/text, nullable)
 
 ### Signature
-- `signature_id` (PK)
-- `storage_ref` / blob pointer for the captured signature image
-- `created_at` (timestamp)
+- `signature_id` (PK, bigint)
+- `signature_data` (MEDIUMBLOB) – stores the PNG signature image directly in DB
+- `created_at` (timestamp, UTC)
 - Tied to the exact bike list and `tnc_version` used at signing; must be retrievable for staff to review post-creation and to generate a full contract document (PDF/HTML) with embedded signature.
-
-### RentalDraft (conceptual/persisted as needed)
-- `draft_id` (string/uuid)
-- `hotel_id`
-- Assigned bikes: list of `bike_id`/`bike_number`
-- Guest inputs: return date/time, room/bed (collected in guest mode)
-- Used to hold state between staff and guest modes before finalization.
 
 ## Relationships & Cardinality
 - One Hotel → one HotelSettings (optional; MVP may have no record, use defaults).
@@ -71,11 +65,11 @@
 
 ## Constraints & Invariants
 - I1: One open rental per bike – enforce in service layer and, if possible, with DB support (e.g., partial unique index on `(bike_id, status)` where status = RENTED; if partial indexes unavailable, guard via transactions/locks).
-- I2: Bike status = OOO prevents assignment to drafts/finalization.
+- I2: Bike status = OOO prevents assignment to rentals (reject at creation time).
 - I3: Rental status derived from RentalItems + `due_at + grace` (ACTIVE/OVERDUE/CLOSED); ensure service recalculates on mutations.
 - I4: Bike status mirrors participation in RENTED items; set to AVAILABLE when no RENTED items and not OOO; LOST handling keeps bike out of availability until addressed.
 - I5: Signature captures final bike list and T&C version at signing; link via `signature_id`.
-- Finalization must be atomic: create Rental + RentalItems + signature storage + bike status updates in one transaction.
+- Rental creation must be atomic: create Rental + RentalItems + signature storage + bike status updates in one transaction.
 - Return/lost actions must recalc rental status and update `return_at` when all items are RETURNED/LOST.
 
 ## Indexing Guidelines
@@ -90,6 +84,6 @@
 - `returned_at` per item set at return time; `lost_reason` optional when marking lost.
 
 ## OOO / Availability Rules
-- Bikes marked OOO cannot be assigned to drafts or finalized into rentals.
+- Bikes marked OOO cannot be included in new rentals (rejected at creation time).
 - Returning bikes sets status AVAILABLE unless OOO or other later rules block it.
 - Marking lost should keep the bike out of availability (OOO or similar handling).

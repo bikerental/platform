@@ -7,11 +7,15 @@
 
 ## Phase 1: Project Setup & Infrastructure
 
-- [x] **1.1** Create monorepo structure: `/backend`, `/frontend`, `/docs`
+- [x] **1.1** Create monorepo structure: backend at root, `/frontend`, `/docs`
 - [x] **1.2** Initialize Spring Boot backend (Java 21, Maven, Spring Web, Spring Security, Spring Data JPA, Lombok)
 - [x] **1.3** Configure MySQL datasource and JPA properties in `application.properties`
 - [x] **1.4** Initialize React frontend (Vite, Tailwind CSS, React Router)
 - [x] **1.5** Configure frontend `API_BASE_URL` environment variable for backend calls
+- [x] **1.6** Add JWT dependency (jjwt) to pom.xml
+- [x] **1.7** Add validation starter to pom.xml
+- [x] **1.8** Add H2 test dependency for integration tests
+- [ ] **1.9** Configure CORS for frontend origin (in SecurityConfig or WebMvcConfigurer)
 
 ---
 
@@ -53,7 +57,7 @@
   - [ ] `GET /api/bikes?status=&q=`
   - [ ] `PATCH /api/bikes/{bikeId}/ooo`
   - [ ] `PATCH /api/bikes/{bikeId}/available`
-- [ ] **3.5** Add DB migration/seed script for initial bikes (dev/test data)
+- [ ] **3.5** Add DB seed script for initial hotel + bikes (dev/test data)
 
 ### Frontend
 - [ ] **3.6** Create `/bikes` route and BikesPage component
@@ -81,59 +85,56 @@
 
 ---
 
-## Phase 5: Rental Draft Flow (Staff Mode)
+## Phase 5: New Rental Flow (Staff Mode)
+
+> **Note:** No backend draft persistence. Frontend manages bike assignment state locally. Backend validates bike availability at rental creation time.
 
 ### Backend
-- [ ] **5.1** Create `RentalDraft` entity or in-memory/cache structure (draft_id, hotel_id, assigned bike ids, guest inputs)
-- [ ] **5.2** Create `RentalDraftRepository` (if persisted) or draft store service
-- [ ] **5.3** Implement `RentalDraftService`:
-  - [ ] Create draft (returns draft_id, empty bike list)
-  - [ ] Add bike to draft (validate: exists, AVAILABLE, not duplicate)
-  - [ ] Remove bike from draft
-  - [ ] Get draft by id
-- [ ] **5.4** Create `RentalDraftController`:
-  - [ ] `POST /api/rentals/drafts` → 201 with draftId
-  - [ ] `POST /api/rentals/drafts/{draftId}/bikes` → add bike
-  - [ ] `DELETE /api/rentals/drafts/{draftId}/bikes/{bikeId}` → remove bike
+- [ ] **5.1** Implement `GET /api/bikes/{bikeNumber}` to check bike availability by number (returns bike details + status)
 
 ### Frontend
-- [ ] **5.5** Create `/rentals/new` route and NewRentalPage (staff mode)
-- [ ] **5.6** On mount, call create draft API
-- [ ] **5.7** Implement bike number input + "Add bike" button
-- [ ] **5.8** Display assigned bikes list with remove buttons
-- [ ] **5.9** Show validation errors (bike not found, not available, duplicate)
-- [ ] **5.10** "Continue & hand to guest" button (disabled if no bikes); navigates to `/rentals/new/guest`
+- [ ] **5.2** Create `/rentals/new` route and NewRentalPage (staff mode)
+- [ ] **5.3** Manage assigned bikes in React state (no backend call until finalization)
+- [ ] **5.4** Implement bike number input + "Add bike" button (validate via `GET /api/bikes/{bikeNumber}`)
+- [ ] **5.5** Display assigned bikes list with remove buttons
+- [ ] **5.6** Show validation errors (bike not found, not available, duplicate in local list)
+- [ ] **5.7** "Continue & hand to guest" button (disabled if no bikes); navigates to `/rentals/new/guest` with bike data in state/URL
 
 ---
 
-## Phase 6: Guest Mode & Finalization
+## Phase 6: Guest Mode & Rental Creation
+
+> **Note:** Single atomic `POST /api/rentals` creates the rental with all data. No draft endpoints.
 
 ### Backend
-- [ ] **6.1** Implement `SignatureService` (store base64 PNG, return signature_id)
-- [ ] **6.2** Implement `RentalService.finalizeDraft()`:
-  - [ ] Validate draft has ≥1 bike
-  - [ ] Validate all bikes still AVAILABLE (race condition check)
+- [ ] **6.1** Implement `SignatureService` (store base64 PNG as MEDIUMBLOB, return signature_id)
+- [ ] **6.2** Implement `RentalService.createRental()`:
+  - [ ] Validate request has ≥1 bike number
+  - [ ] Validate all bikes exist, belong to hotel, and are AVAILABLE (not RENTED/OOO)
   - [ ] Store signature
-  - [ ] Compute start_at = now, due_at from returnDate/returnTime
+  - [ ] Compute start_at = now (UTC), due_at from returnDateTime
   - [ ] Create Rental (ACTIVE) with room/bed, tnc_version, signature_id
   - [ ] Create RentalItems (RENTED) for each bike
   - [ ] Update each bike status to RENTED
   - [ ] All in single transaction (atomic)
   - [ ] Return created rental
-- [ ] **6.3** Create endpoint `POST /api/rentals/drafts/{draftId}/finalize`
-- [ ] **6.4** Handle finalization errors (409 if bike unavailable)
+- [ ] **6.3** Create endpoint `POST /api/rentals`
+  - Request: `{ bikeNumbers: string[], roomNumber, bedNumber?, returnDateTime, tncVersion, signatureBase64Png }`
+  - Response 201: rental with id, status, startAt, dueAt, items
+- [ ] **6.4** Handle creation errors (409 if any bike unavailable with specific bike numbers in error)
 
 ### Frontend
 - [ ] **6.5** Create `/rentals/new/guest` route and GuestModePage component
 - [ ] **6.6** Hide all staff navigation (header, sidebar) in guest mode
-- [ ] **6.7** Display assigned bikes (read-only list)
+- [ ] **6.7** Display assigned bikes (read-only list from state/URL params)
 - [ ] **6.8** Form inputs: return date picker, return time picker, room number (required), bed number (optional)
 - [ ] **6.9** Display T&C text (scrollable)
 - [ ] **6.10** Implement signature pad (canvas-based or library like react-signature-canvas)
 - [ ] **6.11** "Clear signature" button
 - [ ] **6.12** "Confirm rental" button with validation (future return time, room filled, signature present)
-- [ ] **6.13** On confirm: call finalize API; on success show "Rental created" confirmation screen
-- [ ] **6.14** Confirmation screen has "Done" button to return to staff mode (navigate to `/rentals/:id` or `/`)
+- [ ] **6.13** On confirm: call `POST /api/rentals`; on success show "Rental created" confirmation screen
+- [ ] **6.14** Handle 409 error: show which bike(s) became unavailable, allow staff to reassign
+- [ ] **6.15** Confirmation screen has "Done" button to return to staff mode (navigate to `/rentals/:id` or `/`)
 
 ---
 
@@ -200,7 +201,7 @@
 
 ### Frontend
 - [ ] **9.7** Single-bike return: confirmation dialog → call API → update UI → show toast with Undo
-- [ ] **9.8** Implement undo for single-bike return (short-lived, e.g., 10s)
+- [ ] **9.8** Implement undo for single-bike return (30 second window)
 - [ ] **9.9** Multi-select: checkboxes on RENTED items; "Return selected" button (enabled when ≥1 selected)
 - [ ] **9.10** Multi-select confirmation dialog listing bike numbers → call API → update UI → show summary toast
 - [ ] **9.11** "Return all remaining bikes" button (visible when rental not CLOSED and ≥1 RENTED)
@@ -289,7 +290,7 @@
 - [ ] **15.3** Unit tests: Invariant I1 – prevent double-renting a bike
 - [ ] **15.4** Unit tests: Invariant I2 – OOO bikes cannot be assigned
 - [ ] **15.5** Unit tests: Rental status derivation logic
-- [ ] **15.6** Integration tests: Draft → finalize → return flow
+- [ ] **15.6** Integration tests: Create rental → return flow (bike availability validation)
 - [ ] **15.7** Integration tests: Authentication and hotel scoping
 - [ ] **15.8** Frontend component tests (optional for MVP)
 
@@ -321,12 +322,12 @@
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| 1. Setup | Complete | Backend at root, frontend in /frontend |
+| 1. Setup | Complete | Backend at root, frontend in /frontend. JWT/validation/H2 deps added. |
 | 2. Auth | Not started | |
 | 3. Bikes | Not started | |
 | 4. Rental Entities | Not started | |
-| 5. Draft Flow | Not started | |
-| 6. Guest/Finalize | Not started | |
+| 5. New Rental Flow | Not started | No backend draft - frontend state only |
+| 6. Guest/Create | Not started | Single POST /api/rentals (no draft finalize) |
 | 7. Home Overview | Not started | |
 | 8. Rental Detail | Not started | |
 | 9. Returns | Not started | |

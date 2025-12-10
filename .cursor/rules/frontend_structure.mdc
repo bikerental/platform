@@ -1,0 +1,16 @@
+---
+description: Frontend structure for Vite + React + TS + Tailwind.
+globs: ["frontend/src/**"]
+alwaysApply: false
+---
+
+# Frontend Structure
+
+- Organize by routes/features: `routes/`, `features/<name>/components`, `features/<name>/hooks`, `services/` for API clients, `components/ui` for primitives.
+- Routing: React Router; keep route components thin; delegate logic to feature components/hooks.
+- State: prefer local state + feature-scoped context/hooks; avoid global state libs in MVP; no prop drilling—introduce small contexts per feature if needed.
+- Styling: Tailwind utility classes; avoid large custom CSS; keep `index.css` minimal for base styles.
+- API calls: centralize in `services/` using `api.ts` helper; see `api_rules.mdc` for auth/error handling.
+- Components: functional components only; keep under ~200 lines; extract reusable UI pieces to `components/ui`.
+- Forms: controlled inputs; basic validation client-side before calling APIs; show clear errors.
+- Files: one component per file; colocate tests/stories if added later.

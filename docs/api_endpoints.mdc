@@ -2,12 +2,32 @@
 
 All protected endpoints require `Authorization: Bearer <accessToken>` and must scope queries by `hotelId` from JWT (client must not send/override hotel ids). Errors: expired/invalid token → 401 → frontend clears token and redirects to `/login`.
 
+## Error Response Format
+
+All error responses use a consistent JSON structure:
+
+```json
+{
+  "error": "BIKE_ALREADY_RENTED",
+  "message": "Bike #5 is already rented",
+  "details": { "bikeNumbers": ["5", "12"] },
+  "timestamp": "2025-12-10T14:30:00.000Z"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `error` | string | Machine-readable error code (e.g., `BIKE_NOT_FOUND`, `BIKE_ALREADY_RENTED`, `BIKE_OOO`, `VALIDATION_ERROR`) |
+| `message` | string | Human-readable error message |
+| `details` | object? | Optional additional context (e.g., which bikes failed) |
+| `timestamp` | string | ISO 8601 UTC timestamp |
+
 ## Auth
 - `POST /api/auth/login`
-  - Req: `hotelCode`, `password`.
+  - Req: `{ "hotelCode": "...", "password": "..." }`
   - Res 200: `{ "accessToken": "...", "hotelName": "SteelHouse Copenhagen" }`
   - Errors: 401/400 with generic message (no hint which credential failed).
-  - **Implementation:** Password verified against bcrypt hash (cost 10+). JWT expiry 8–12 hours. HTTPS required in production.
+  - See `requirements.mdc` for token lifetime; `db_schema.mdc` for password hashing.
 
 ## Home Overview
 - `GET /api/overview`
@@ -15,24 +35,46 @@ All protected endpoints require `Authorization: Bearer <accessToken>` and must s
 
 ## Bikes
 - `GET /api/bikes?status=&q=` – list bikes; filter by status and/or search query (bike number).
+- `GET /api/bikes/by-number/{bikeNumber}` – get single bike by number (for availability check during rental creation).
+  - Res 200: `{ "bikeId", "bikeNumber", "bikeType", "status", "oooNote"?, "oooSince"? }`
+  - Errors: 404 if bike not found in hotel.
 - `PATCH /api/bikes/{bikeId}/ooo`
   - Req: `{ "note": "Flat tire" }`
   - Res: bike with `status = OOO`, `oooNote`, `oooSince`.
 - `PATCH /api/bikes/{bikeId}/available`
   - Rule: must fail if bike is part of a RENTED rental item.
 
-## Rentals – Draft & Finalize
-- `POST /api/rentals/drafts`
-  - Res 201: `{ "draftId": "d-abc123", "assignedBikes": [] }`
-- `POST /api/rentals/drafts/{draftId}/bikes`
-  - Req: `{ "bikeNumber": "5" }`
-  - Res: draft with assigned bikes list.
-  - Errors: 404 if bike not found; 409 if bike OOO or already rented.
-- `DELETE /api/rentals/drafts/{draftId}/bikes/{bikeId}` – remove bike from draft.
-- `POST /api/rentals/drafts/{draftId}/finalize`
-  - Req: `{ "roomNumber", "bedNumber" (nullable), "returnDate", "returnTime", "tncVersion", "signatureBase64Png" }`
-  - Res 201: rental with id, status ACTIVE, startAt, dueAt, room/bed (bed may be null), bikes list (bikeId/number/status).
-  - Errors: fail if any bike becomes unavailable between assignment and finalize.
+## Rentals – Create
+- `POST /api/rentals`
+  - Req:
+    ```json
+    {
+      "bikeNumbers": ["5", "12", "8"],
+      "roomNumber": "204",
+      "bedNumber": "A",
+      "returnDateTime": "2025-12-11T18:00:00.000Z",
+      "tncVersion": "v1",
+      "signatureBase64Png": "data:image/png;base64,..."
+    }
+    ```
+  - Res 201:
+    ```json
+    {
+      "rentalId": 123,
+      "status": "ACTIVE",
+      "startAt": "2025-12-10T14:30:00.000Z",
+      "dueAt": "2025-12-11T18:00:00.000Z",
+      "roomNumber": "204",
+      "bedNumber": "A",
+      "items": [
+        { "rentalItemId": 1, "bikeId": 5, "bikeNumber": "5", "status": "RENTED" },
+        { "rentalItemId": 2, "bikeId": 12, "bikeNumber": "12", "status": "RENTED" }
+      ]
+    }
+    ```
+  - Errors:
+    - 400: validation errors (missing required fields, empty bike list, past return time)
+    - 409: one or more bikes unavailable (includes `details.unavailableBikes` array with bike numbers and reasons)
 
 ## Rentals – Lists & Detail
 - `GET /api/rentals?status=ACTIVE|OVERDUE|CLOSED`

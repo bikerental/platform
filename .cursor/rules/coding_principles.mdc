@@ -1,0 +1,15 @@
+---
+description: General coding principles (SOLID, GRASP, DRY/KISS) for backend and frontend.
+globs: ["**/*.java", "**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+
+# Coding Principles
+
+- SOLID (in practice): single-responsibility per class/module; inject collaborators (no hard-coded new); program to interfaces; keep controllers thin, services cohesive; open for extension via strategy/template patterns where needed; avoid inheritance when composition suffices.
+- GRASP: Controllers live at service/controller layers (backend) and route/feature handlers (frontend); creators own lifecycle of their aggregates; low coupling/high cohesion; favor information expert (put logic where the data lives, e.g., service/domain helpers, not controllers/DTOs).
+- DRY/KISS: Prefer small functions (<50 lines), avoid duplicating business rules; no premature abstractions; prefer readability over cleverness.
+- YAGNI: Add only what the spec requires; keep post-MVP items behind TODO/notes, not code.
+- Naming: Clear, intent-revealing; avoid abbreviations; DTOs/Requests/Responses suffixed accordingly.
+- Error handling: Fail fast on invalid state; return clear errors; never swallow exceptions silently.
+- State & mutability: Prefer immutability for DTOs/config; contain mutations within well-defined boundaries (services/hooks).

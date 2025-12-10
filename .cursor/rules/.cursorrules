@@ -1,0 +1,13 @@
+Start all chats with 🤖
+
+## Stack
+Backend: Java 21, Spring Boot 3.4 (Web, Security with JWT, Data JPA), MySQL, Maven (use `./mvnw`), Lombok (limited to Getter/Setter/RequiredArgsConstructor), jjwt (or similar) for token handling.
+Frontend: Vite + React + TypeScript, Tailwind CSS, React Router, node 20.18 (upgrade to 20.19+ when convenient).
+
+## Conventions
+- Use `VITE_API_BASE_URL` for API calls; default `http://localhost:8080/api`.
+- Prefer absolute paths in tool calls when possible.
+- Keep backend at repo root; frontend in `/frontend`; docs in `/docs`.
+- Use npm scripts (`npm run dev`, `npm run build`) in `/frontend`; use `./mvnw spring-boot:run` for backend.
+- Avoid global state libs for MVP; use hooks/context only.
+- Avoid adding new Lombok annotations beyond allowed set.
