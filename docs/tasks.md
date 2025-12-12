@@ -15,31 +15,31 @@
 - [x] **1.6** Add JWT dependency (jjwt) to pom.xml
 - [x] **1.7** Add validation starter to pom.xml
 - [x] **1.8** Add H2 test dependency for integration tests
-- [ ] **1.9** Configure CORS for frontend origin (in SecurityConfig or WebMvcConfigurer)
+- [x] **1.9** Configure CORS for frontend origin (in SecurityConfig or WebMvcConfigurer)
 
 ---
 
 ## Phase 2: Authentication & Hotel Context
 
 ### Backend
-- [ ] **2.1** Create `Hotel` entity (hotel_id, hotel_code, hotel_name, password_hash)
-- [ ] **2.2** Create `HotelRepository`
-- [ ] **2.3** Implement JWT utility (generate token with hotelId/hotelCode/exp, validate, extract claims)
+- [x] **2.1** Create `Hotel` entity (hotel_id, hotel_code, hotel_name, password_hash)
+- [x] **2.2** Create `HotelRepository`
+- [x] **2.3** Implement JWT utility (generate token with hotelId/hotelCode/exp, validate, extract claims)
   - **Note:** Set JWT expiry to 8–12 hours (one staff shift)
-- [ ] **2.4** Implement `AuthService` (authenticate hotel credentials, return JWT + hotel name)
+- [x] **2.4** Implement `AuthService` (authenticate hotel credentials, return JWT + hotel name)
   - **Note:** Use bcrypt (cost factor 10+) for password verification
-- [ ] **2.5** Create `AuthController` with `POST /api/auth/login`
-- [ ] **2.6** Configure Spring Security: stateless session, JWT filter, permit `/api/auth/**`, protect all else
-- [ ] **2.7** Implement `HotelContext` helper to extract hotelId from SecurityContext for scoping queries
+- [x] **2.5** Create `AuthController` with `POST /api/auth/login`
+- [x] **2.6** Configure Spring Security: stateless session, JWT filter, permit `/api/auth/**`, protect all else
+- [x] **2.7** Implement `HotelContext` helper to extract hotelId from SecurityContext for scoping queries
 
 ### Frontend
-- [ ] **2.8** Create `/login` route and LoginPage component (hotel code + password form)
-- [ ] **2.9** Implement auth service (call login API, store JWT in localStorage/memory)
-- [ ] **2.10** Create AuthContext/hook for current auth state and logout
-- [ ] **2.11** Implement ProtectedRoute wrapper (redirect to `/login` if unauthenticated)
-- [ ] **2.12** Add global Axios/fetch interceptor to attach `Authorization: Bearer` header
-- [ ] **2.13** Handle 401 responses globally (clear token, redirect to `/login`)
-- [ ] **2.14** Display logged-in hotel name in header/nav
+- [x] **2.8** Create `/login` route and LoginPage component (hotel code + password form)
+- [x] **2.9** Implement auth service (call login API, store JWT in localStorage/memory)
+- [x] **2.10** Create AuthContext/hook for current auth state and logout
+- [x] **2.11** Implement ProtectedRoute wrapper (redirect to `/login` if unauthenticated)
+- [x] **2.12** Add global Axios/fetch interceptor to attach `Authorization: Bearer` header
+- [x] **2.13** Handle 401 responses globally (clear token, redirect to `/login`)
+- [x] **2.14** Display logged-in hotel name in header/nav
 
 ---
 
@@ -296,6 +296,18 @@
 
 ---
 
+## Admin Feature (Added)
+
+> Hotel management via admin API. See `docs/admin_api.md` for full documentation.
+
+- [x] Admin authentication (via config-based credentials)
+- [x] Role-based access control (ROLE_ADMIN vs ROLE_HOTEL)
+- [x] `GET /api/admin/hotels` – list all hotels
+- [x] `POST /api/admin/hotels` – create new hotel
+- [x] `POST /api/admin/hotels/{hotelId}/reset-password` – reset hotel password
+
+---
+
 ## Future / Out of Scope (Post-MVP)
 
 ### Settings & Configuration (Architecture Ready)
@@ -311,6 +323,7 @@
 ### Other Enhancements
 - [ ] Refresh token / token renewal
 - [ ] Individual staff accounts for audit trails
+- [ ] Admin UI (currently API-only)
 - [ ] GDPR data retention and purging
 - [ ] Analytics / overdue duration logging / bike maintenance logging
 - [ ] Multi-language support
@@ -322,8 +335,8 @@
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| 1. Setup | Complete | Backend at root, frontend in /frontend. JWT/validation/H2 deps added. |
-| 2. Auth | Not started | |
+| 1. Setup | Complete | Backend at root, frontend in /frontend. JWT/validation/H2 deps added. CORS configured. |
+| 2. Auth | Complete | Hotel entity, JWT service, Spring Security, login endpoint, protected routes, AuthContext. |
 | 3. Bikes | Not started | |
 | 4. Rental Entities | Not started | |
 | 5. New Rental Flow | Not started | No backend draft - frontend state only |

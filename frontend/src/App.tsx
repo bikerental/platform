@@ -1,32 +1,67 @@
 import { Routes, Route } from 'react-router-dom'
+import { AuthProvider, ProtectedRoute, LoginPage } from './features/auth'
+import { AppLayout } from './components/layout/AppLayout'
 
 // Placeholder pages - will be implemented in later phases
 function HomePage() {
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <h1 className="text-3xl font-bold text-slate-900">Bike Rental System</h1>
-      <p className="mt-2 text-slate-600">Welcome to the home page. Routes configured.</p>
+    <div>
+      <h1 className="text-2xl font-bold text-slate-900 mb-4">Dashboard</h1>
+      <p className="text-slate-600">Welcome to the bike rental system. Home overview coming soon.</p>
+      
+      {/* Placeholder counts */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+        <StatCard label="Available Bikes" value="--" color="green" />
+        <StatCard label="Rented Bikes" value="--" color="blue" />
+        <StatCard label="Active Rentals" value="--" color="blue" />
+        <StatCard label="Overdue" value="--" color="red" />
+      </div>
     </div>
   )
 }
 
-function LoginPage() {
+function BikesPage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-slate-900">Login</h1>
-        <p className="mt-2 text-slate-600">Login page placeholder.</p>
-      </div>
+    <div>
+      <h1 className="text-2xl font-bold text-slate-900 mb-4">Bikes</h1>
+      <p className="text-slate-600">Bike inventory management coming in Phase 3.</p>
+    </div>
+  )
+}
+
+function StatCard({ label, value, color }: { label: string; value: string; color: 'green' | 'blue' | 'red' }) {
+  const colorClasses = {
+    green: 'bg-green-50 text-green-700 border-green-200',
+    blue: 'bg-blue-50 text-blue-700 border-blue-200',
+    red: 'bg-red-50 text-red-700 border-red-200',
+  }
+  
+  return (
+    <div className={`p-4 rounded-lg border ${colorClasses[color]}`}>
+      <div className="text-3xl font-bold">{value}</div>
+      <div className="text-sm mt-1 opacity-80">{label}</div>
     </div>
   )
 }
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<HomePage />} />
-    </Routes>
+    <AuthProvider>
+      <Routes>
+        {/* Public route */}
+        <Route path="/login" element={<LoginPage />} />
+        
+        {/* Protected routes with layout */}
+        <Route element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/bikes" element={<BikesPage />} />
+        </Route>
+      </Routes>
+    </AuthProvider>
   )
 }
 
