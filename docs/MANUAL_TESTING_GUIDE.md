@@ -46,7 +46,7 @@ You should see an error (since it's a POST endpoint), but this confirms the serv
 Open a **new terminal window** (keep the backend running):
 
 ```bash
-cd /path/to/rental-service/frontend
+gitcd /path/to/rental-service/frontend
 npm install  # Only needed first time or after dependency changes
 npm run dev
 ```
