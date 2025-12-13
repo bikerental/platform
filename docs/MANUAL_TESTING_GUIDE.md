@@ -18,7 +18,7 @@ This guide will help you manually test the admin features by running both the ba
 ### Option A: Using Maven Wrapper (Recommended)
 
 ```bash
-cd /Users/lucaslevy/CursorProjects/rental-service
+cd /path/to/rental-service
 ./mvnw spring-boot:run
 ```
 
@@ -46,7 +46,7 @@ You should see an error (since it's a POST endpoint), but this confirms the serv
 Open a **new terminal window** (keep the backend running):
 
 ```bash
-cd /Users/lucaslevy/CursorProjects/rental-service/frontend
+cd /path/to/rental-service/frontend
 npm install  # Only needed first time or after dependency changes
 npm run dev
 ```
@@ -357,7 +357,7 @@ fetch('http://localhost:8080/api/admin/hotels', {
 .catch(error => console.error('Error:', error));
 ```
 
-**Expected:** 401 Unauthorized error
++**Expected:** 403 Forbidden error (Spring Security default for unauthenticated requests)
 
 ### Test 2: Try to Create Hotel with Duplicate Code
 
