@@ -14,18 +14,21 @@ The admin credentials are configured in `application.properties`:
 
 ```properties
 admin.username=${ADMIN_USERNAME:admin}
-admin.password=${ADMIN_PASSWORD:ChangeThisAdminPwd123!}
+admin.password-hash=${ADMIN_PASSWORD_HASH:$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy}
 ```
 
 **Default credentials (development):**
 - Username: `admin`
-- Password: `ChangeThisAdminPwd123!`
+- Password: `admin123` (hashed with bcrypt)
 
-⚠️ **Important:** Change these credentials in production by setting environment variables:
+⚠️ **Important:** Change the admin password hash in production by setting the environment variable:
 ```bash
-export ADMIN_USERNAME=your_admin_username
-export ADMIN_PASSWORD=YourSecureAdminPassword!
+# Generate a bcrypt hash for your password (cost factor 10)
+# Then set:
+export ADMIN_PASSWORD_HASH=your_bcrypt_hash_here
 ```
+
+**Note:** The admin password is stored as a bcrypt hash, not plaintext. To generate a new hash, use a bcrypt password encoder with cost factor 10.
 
 ### Login as Admin
 
@@ -35,7 +38,7 @@ Content-Type: application/json
 
 {
   "hotelCode": "admin",
-  "password": "ChangeThisAdminPwd123!"
+  "password": "admin123"
 }
 ```
 
@@ -192,7 +195,7 @@ Content-Type: application/json
 ```json
 {
   "hotelCode": "admin",
-  "password": "ChangeThisAdminPwd123!"
+  "password": "admin123"
 }
 ```
 - **Tests tab (to auto-save token):**
@@ -250,7 +253,7 @@ if (pm.response.code === 200) {
 # Step 1: Login as admin and save token
 ADMIN_TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"hotelCode": "admin", "password": "ChangeThisAdminPwd123!"}' \
+  -d '{"hotelCode": "admin", "password": "admin123"}' \
   | python3 -c "import sys, json; print(json.load(sys.stdin)['accessToken'])")
 
 echo "Admin token: $ADMIN_TOKEN"
