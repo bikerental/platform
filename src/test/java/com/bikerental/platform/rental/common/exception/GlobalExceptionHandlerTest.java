@@ -1,6 +1,12 @@
 package com.bikerental.platform.rental.common.exception;
 
-import com.bikerental.platform.rental.common.dto.ErrorResponse;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -9,14 +15,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import com.bikerental.platform.rental.common.dto.ErrorResponse;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+@SuppressWarnings("null")
 class GlobalExceptionHandlerTest {
 
     private GlobalExceptionHandler exceptionHandler;
@@ -41,10 +42,11 @@ class GlobalExceptionHandlerTest {
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getError()).isEqualTo("VALIDATION_ERROR");
-        assertThat(response.getBody().getMessage()).isEqualTo("Validation failed");
-        assertThat(response.getBody().getDetails()).isNotNull();
+        var body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getError()).isEqualTo("VALIDATION_ERROR");
+        assertThat(body.getMessage()).isEqualTo("Validation failed");
+        assertThat(body.getDetails()).isNotNull();
     }
 
     @Test
@@ -57,9 +59,10 @@ class GlobalExceptionHandlerTest {
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getError()).isEqualTo("BAD_REQUEST");
-        assertThat(response.getBody().getMessage()).isEqualTo("Invalid argument");
+        var body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getError()).isEqualTo("BAD_REQUEST");
+        assertThat(body.getMessage()).isEqualTo("Invalid argument");
     }
 
     @Test
@@ -72,9 +75,10 @@ class GlobalExceptionHandlerTest {
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getError()).isEqualTo("CONFLICT");
-        assertThat(response.getBody().getMessage()).isEqualTo("Resource conflict");
+        var body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getError()).isEqualTo("CONFLICT");
+        assertThat(body.getMessage()).isEqualTo("Resource conflict");
     }
 
     @Test
@@ -87,9 +91,10 @@ class GlobalExceptionHandlerTest {
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getError()).isEqualTo("NOT_FOUND");
-        assertThat(response.getBody().getMessage()).isEqualTo("Hotel not found");
+        var body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getError()).isEqualTo("NOT_FOUND");
+        assertThat(body.getMessage()).isEqualTo("Hotel not found");
     }
 
     @Test
@@ -102,9 +107,10 @@ class GlobalExceptionHandlerTest {
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getError()).isEqualTo("CONFLICT");
-        assertThat(response.getBody().getMessage()).isEqualTo("Hotel code already exists");
+        var body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getError()).isEqualTo("CONFLICT");
+        assertThat(body.getMessage()).isEqualTo("Hotel code already exists");
     }
 
     @Test
@@ -123,10 +129,11 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<ErrorResponse> response = exceptionHandler.handleValidationExceptions(ex);
 
         // Assert
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getDetails()).isNotNull();
+        var body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getDetails()).isNotNull();
         @SuppressWarnings("unchecked")
-        Map<String, String> details = (Map<String, String>) response.getBody().getDetails();
+        Map<String, String> details = (Map<String, String>) body.getDetails();
         assertThat(details).containsKey("hotelCode");
         assertThat(details).containsKey("password");
     }

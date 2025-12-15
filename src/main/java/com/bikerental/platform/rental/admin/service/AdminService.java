@@ -7,6 +7,7 @@ import com.bikerental.platform.rental.auth.repo.HotelRepository;
 import com.bikerental.platform.rental.common.exception.ConflictException;
 import com.bikerental.platform.rental.common.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +42,7 @@ public class AdminService {
      * Reset a hotel's password.
      */
     @Transactional
-    public void resetPassword(Long hotelId, String newPassword) {
+    public void resetPassword(@NonNull Long hotelId, String newPassword) {
         Hotel hotel = hotelRepository.findById(hotelId)
                 .orElseThrow(() -> new NotFoundException("Hotel not found with ID: " + hotelId));
 

@@ -1,16 +1,20 @@
 package com.bikerental.platform.rental.auth.controller;
 
-import com.bikerental.platform.rental.auth.dto.LoginRequest;
-import com.bikerental.platform.rental.auth.dto.LoginResponse;
-import com.bikerental.platform.rental.auth.service.AuthService;
-import com.bikerental.platform.rental.common.dto.ErrorResponse;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.time.Instant;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
+import com.bikerental.platform.rental.auth.dto.LoginRequest;
+import com.bikerental.platform.rental.auth.service.AuthService;
+import com.bikerental.platform.rental.common.dto.ErrorResponse;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/auth")

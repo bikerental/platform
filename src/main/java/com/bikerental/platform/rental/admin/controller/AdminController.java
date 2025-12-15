@@ -1,17 +1,25 @@
 package com.bikerental.platform.rental.admin.controller;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.bikerental.platform.rental.admin.dto.CreateHotelRequest;
 import com.bikerental.platform.rental.admin.dto.HotelResponse;
 import com.bikerental.platform.rental.admin.dto.ResetPasswordRequest;
 import com.bikerental.platform.rental.admin.service.AdminService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Admin endpoints for hotel management. Requires ROLE_ADMIN.
@@ -37,7 +45,7 @@ public class AdminController {
 
     @PostMapping("/hotels/{hotelId}/reset-password")
     public Map<String, Object> resetPassword(
-            @PathVariable Long hotelId,
+            @PathVariable @NonNull Long hotelId,
             @Valid @RequestBody ResetPasswordRequest request) {
         adminService.resetPassword(hotelId, request.getNewPassword());
         return Map.of("message", "Password reset successfully", "hotelId", hotelId);
