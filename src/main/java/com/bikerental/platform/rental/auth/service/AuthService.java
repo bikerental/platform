@@ -17,19 +17,19 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final String adminUsername;
-    private final String adminPassword;
+    private final String adminPasswordHash;
 
     public AuthService(
             HotelRepository hotelRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
             @Value("${admin.username}") String adminUsername,
-            @Value("${admin.password}") String adminPassword) {
+            @Value("${admin.password-hash}") String adminPasswordHash) {
         this.hotelRepository = hotelRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.adminUsername = adminUsername;
-        this.adminPassword = adminPassword;
+        this.adminPasswordHash = adminPasswordHash;
     }
 
     /**
@@ -48,8 +48,7 @@ public class AuthService {
     }
 
     private Optional<LoginResponse> authenticateAdmin(LoginRequest request) {
-        // Plain text comparison for admin (password stored in config, not hashed)
-        if (!adminPassword.equals(request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), adminPasswordHash)) {
             return Optional.empty();
         }
 

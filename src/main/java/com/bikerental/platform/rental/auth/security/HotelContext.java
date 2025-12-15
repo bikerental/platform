@@ -42,7 +42,8 @@ public class HotelContext {
         Object principal = authentication.getPrincipal();
 
         if (!(principal instanceof HotelPrincipal)) {
-            throw new IllegalStateException("Unexpected principal type: " + principal.getClass().getName());
+            String principalType = principal == null ? "null" : principal.getClass().getName();
+            throw new IllegalStateException("Unexpected principal type: " + principalType);
         }
 
         return (HotelPrincipal) principal;

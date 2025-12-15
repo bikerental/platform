@@ -19,13 +19,22 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = getToken()
   
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
+  // Create Headers instance from existing headers (handles Headers, Record, or array)
+  const headers = new Headers(options.headers)
+  
+  // Only set default Content-Type if:
+  // 1. Caller didn't specify one
+  // 2. Body is not FormData, Blob, or URLSearchParams (which set their own content types)
+  if (!headers.has('Content-Type')) {
+    const body = options.body
+    if (!(body instanceof FormData) && !(body instanceof Blob) && !(body instanceof URLSearchParams)) {
+      headers.set('Content-Type', 'application/json')
+    }
   }
   
+  // Add Authorization header if token exists
   if (token) {
-    ;(headers as Record<string, string>)['Authorization'] = `Bearer ${token}`
+    headers.set('Authorization', `Bearer ${token}`)
   }
 
   const response = await fetch(apiUrl(path), {

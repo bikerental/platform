@@ -33,8 +33,14 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   })
 
   if (!response.ok) {
-    const error: ErrorResponse = await response.json()
-    throw new Error(error.message || 'Login failed')
+    let message = 'Login failed'
+    try {
+      const error: ErrorResponse = await response.json()
+      message = error.message || message
+    } catch {
+      // Non-JSON response (HTML/text/empty) — keep default message
+    }
+    throw new Error(message)
   }
 
   const data: LoginResponse = await response.json()

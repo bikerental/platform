@@ -35,7 +35,7 @@ class AuthServiceTest {
     private AuthService authService;
 
     private static final String ADMIN_USERNAME = "admin";
-    private static final String ADMIN_PASSWORD = "admin123";
+    private static final String ADMIN_PASSWORD_HASH = "hashed-admin-password";
     private static final String HOTEL_CODE = "HOTEL001";
     private static final String HOTEL_PASSWORD = "hotelPassword123";
     private static final String HOTEL_NAME = "Test Hotel";
@@ -56,7 +56,7 @@ class AuthServiceTest {
                 passwordEncoder,
                 jwtService,
                 ADMIN_USERNAME,
-                ADMIN_PASSWORD
+                ADMIN_PASSWORD_HASH 
         );
 
         LoginRequest request = new LoginRequest(HOTEL_CODE, HOTEL_PASSWORD);
@@ -90,7 +90,7 @@ class AuthServiceTest {
                 passwordEncoder,
                 jwtService,
                 ADMIN_USERNAME,
-                ADMIN_PASSWORD
+                ADMIN_PASSWORD_HASH 
         );
 
         LoginRequest request = new LoginRequest("INVALID_CODE", HOTEL_PASSWORD);
@@ -114,7 +114,7 @@ class AuthServiceTest {
                 passwordEncoder,
                 jwtService,
                 ADMIN_USERNAME,
-                ADMIN_PASSWORD
+                ADMIN_PASSWORD_HASH 
         );
 
         LoginRequest request = new LoginRequest(HOTEL_CODE, "wrongPassword");
@@ -139,28 +139,26 @@ class AuthServiceTest {
 
     @Test
     void authenticate_WithValidAdminCredentials_ReturnsLoginResponse() {
-        // Arrange
         AuthService service = new AuthService(
-                hotelRepository,
-                passwordEncoder,
-                jwtService,
-                ADMIN_USERNAME,
-                ADMIN_PASSWORD
+            hotelRepository,
+            passwordEncoder,
+            jwtService,
+            ADMIN_USERNAME,
+            ADMIN_PASSWORD_HASH
         );
 
-        LoginRequest request = new LoginRequest(ADMIN_USERNAME, ADMIN_PASSWORD);
+        LoginRequest request = new LoginRequest(ADMIN_USERNAME, "admin123");
+
+        when(passwordEncoder.matches("admin123", ADMIN_PASSWORD_HASH)).thenReturn(true);
         when(jwtService.generateAdminToken(ADMIN_USERNAME)).thenReturn(JWT_TOKEN);
 
-        // Act
         Optional<LoginResponse> result = service.authenticate(request);
 
-        // Assert
         assertThat(result).isPresent();
         assertThat(result.get().getAccessToken()).isEqualTo(JWT_TOKEN);
         assertThat(result.get().getHotelName()).isEqualTo("System Administrator");
+        verify(passwordEncoder).matches("admin123", ADMIN_PASSWORD_HASH);
         verify(jwtService).generateAdminToken(ADMIN_USERNAME);
-        verify(hotelRepository, never()).findByHotelCode(anyString());
-        verify(passwordEncoder, never()).matches(anyString(), anyString());
     }
 
     @Test
@@ -171,16 +169,19 @@ class AuthServiceTest {
                 passwordEncoder,
                 jwtService,
                 ADMIN_USERNAME,
-                ADMIN_PASSWORD
+                ADMIN_PASSWORD_HASH 
         );
 
         LoginRequest request = new LoginRequest(ADMIN_USERNAME, "wrongPassword");
+        when(passwordEncoder.matches("wrongPassword", ADMIN_PASSWORD_HASH)).thenReturn(false);
 
         // Act
         Optional<LoginResponse> result = service.authenticate(request);
 
         // Assert
         assertThat(result).isEmpty();
+
+        verify(passwordEncoder).matches("wrongPassword", ADMIN_PASSWORD_HASH);
         verify(jwtService, never()).generateAdminToken(anyString());
         verify(hotelRepository, never()).findByHotelCode(anyString());
     }
@@ -193,16 +194,18 @@ class AuthServiceTest {
                 passwordEncoder,
                 jwtService,
                 ADMIN_USERNAME,
-                ADMIN_PASSWORD
+                ADMIN_PASSWORD_HASH 
         );
 
         LoginRequest request = new LoginRequest(ADMIN_USERNAME, "wrongPassword");
 
         // Act
+        when(passwordEncoder.matches("wrongPassword", ADMIN_PASSWORD_HASH)).thenReturn(false);
         Optional<LoginResponse> result = service.authenticate(request);
 
         // Assert
         assertThat(result).isEmpty();
+        verify(passwordEncoder).matches("wrongPassword", ADMIN_PASSWORD_HASH);
         verify(jwtService, never()).generateAdminToken(anyString());
     }
 }
