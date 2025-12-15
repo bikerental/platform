@@ -1,11 +1,17 @@
 package com.bikerental.platform.rental.admin.service;
 
-import com.bikerental.platform.rental.admin.dto.CreateHotelRequest;
-import com.bikerental.platform.rental.admin.dto.HotelResponse;
-import com.bikerental.platform.rental.auth.model.Hotel;
-import com.bikerental.platform.rental.auth.repo.HotelRepository;
-import com.bikerental.platform.rental.common.exception.ConflictException;
-import com.bikerental.platform.rental.common.exception.NotFoundException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,17 +21,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import com.bikerental.platform.rental.admin.dto.CreateHotelRequest;
+import com.bikerental.platform.rental.admin.dto.HotelResponse;
+import com.bikerental.platform.rental.auth.model.Hotel;
+import com.bikerental.platform.rental.auth.repo.HotelRepository;
+import com.bikerental.platform.rental.common.exception.ConflictException;
+import com.bikerental.platform.rental.common.exception.NotFoundException;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class AdminServiceTest {
 
     @Mock

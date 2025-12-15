@@ -1,9 +1,11 @@
 package com.bikerental.platform.rental.admin;
 
-import com.bikerental.platform.rental.auth.model.Hotel;
-import com.bikerental.platform.rental.auth.repo.HotelRepository;
-import com.bikerental.platform.rental.auth.service.JwtService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +17,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.bikerental.platform.rental.auth.model.Hotel;
+import com.bikerental.platform.rental.auth.repo.HotelRepository;
+import com.bikerental.platform.rental.auth.service.JwtService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Integration tests for Admin API endpoints.
@@ -32,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "admin.username=admin",
         "admin.password-hash=$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
 })
+@SuppressWarnings("null")
 class AdminIntegrationTest {
 
     @Autowired

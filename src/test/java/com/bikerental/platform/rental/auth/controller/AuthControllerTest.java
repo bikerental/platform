@@ -1,12 +1,14 @@
 package com.bikerental.platform.rental.auth.controller;
 
-import com.bikerental.platform.rental.auth.dto.LoginRequest;
-import com.bikerental.platform.rental.auth.dto.LoginResponse;
-import com.bikerental.platform.rental.auth.security.JwtAuthenticationFilter;
-import com.bikerental.platform.rental.auth.service.AuthService;
-import com.bikerental.platform.rental.auth.service.JwtService;
-import com.bikerental.platform.rental.common.dto.ErrorResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,12 +18,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.bikerental.platform.rental.auth.dto.LoginRequest;
+import com.bikerental.platform.rental.auth.dto.LoginResponse;
+import com.bikerental.platform.rental.auth.security.JwtAuthenticationFilter;
+import com.bikerental.platform.rental.auth.service.AuthService;
+import com.bikerental.platform.rental.auth.service.JwtService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -31,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "admin.username=admin",
         "admin.password-hash=$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
 })
+@SuppressWarnings("null")
 class AuthControllerTest {
 
     @Autowired
