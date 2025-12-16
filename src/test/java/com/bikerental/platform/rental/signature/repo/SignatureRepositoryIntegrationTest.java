@@ -1,0 +1,132 @@
+package com.bikerental.platform.rental.signature.repo;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.bikerental.platform.rental.signature.model.Signature;
+
+import java.nio.charset.StandardCharsets;
+
+/**
+ * Integration tests for SignatureRepository.
+ * Tests hotel-scoped access for multi-tenant security.
+ */
+@DataJpaTest
+@TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
+    "spring.datasource.driver-class-name=org.h2.Driver",
+    "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.jpa.show-sql=true",
+    "spring.sql.init.mode=never"
+})
+@Transactional
+class SignatureRepositoryIntegrationTest {
+
+    @Autowired
+    private SignatureRepository signatureRepository;
+
+    private static final Long HOTEL_ID_1 = 1L;
+    private static final Long HOTEL_ID_2 = 2L;
+
+    @BeforeEach
+    void setUp() {
+        signatureRepository.deleteAll();
+    }
+
+    @Test
+    void saveSignature_WithValidData_Succeeds() {
+        // Arrange
+        byte[] signatureData = "fake-png-data".getBytes(StandardCharsets.UTF_8);
+        Signature signature = new Signature(HOTEL_ID_1, signatureData);
+
+        // Act
+        Signature saved = signatureRepository.save(signature);
+
+        // Assert
+        assertThat(saved.getSignatureId()).isNotNull();
+        assertThat(saved.getHotelId()).isEqualTo(HOTEL_ID_1);
+        assertThat(saved.getSignatureData()).isEqualTo(signatureData);
+        assertThat(saved.getCreatedAt()).isNotNull();
+    }
+
+    @Test
+    void findBySignatureIdAndHotelId_WithCorrectHotel_ReturnsSignature() {
+        // Arrange
+        byte[] signatureData = "test-signature-png".getBytes(StandardCharsets.UTF_8);
+        Signature signature = new Signature(HOTEL_ID_1, signatureData);
+        Signature saved = signatureRepository.save(signature);
+
+        // Act
+        var result = signatureRepository.findBySignatureIdAndHotelId(saved.getSignatureId(), HOTEL_ID_1);
+
+        // Assert
+        assertThat(result).isPresent();
+        assertThat(result.get().getSignatureData()).isEqualTo(signatureData);
+    }
+
+    @Test
+    void findBySignatureIdAndHotelId_WithWrongHotel_ReturnsEmpty() {
+        // Arrange
+        byte[] signatureData = "test-signature-png".getBytes(StandardCharsets.UTF_8);
+        Signature signature = new Signature(HOTEL_ID_1, signatureData);
+        Signature saved = signatureRepository.save(signature);
+
+        // Act - try to access with different hotel ID
+        var result = signatureRepository.findBySignatureIdAndHotelId(saved.getSignatureId(), HOTEL_ID_2);
+
+        // Assert - should not be accessible
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void saveSignature_SetsCreatedAtAutomatically() {
+        // Arrange
+        Signature signature = new Signature(HOTEL_ID_1, "data".getBytes(StandardCharsets.UTF_8));
+        assertThat(signature.getCreatedAt()).isNull();
+
+        // Act
+        Signature saved = signatureRepository.save(signature);
+
+        // Assert
+        assertThat(saved.getCreatedAt()).isNotNull();
+    }
+
+    @Test
+    void saveMultipleSignatures_EachGetsDifferentId() {
+        // Arrange
+        Signature sig1 = new Signature(HOTEL_ID_1, "data1".getBytes(StandardCharsets.UTF_8));
+        Signature sig2 = new Signature(HOTEL_ID_1, "data2".getBytes(StandardCharsets.UTF_8));
+
+        // Act
+        Signature saved1 = signatureRepository.save(sig1);
+        Signature saved2 = signatureRepository.save(sig2);
+
+        // Assert
+        assertThat(saved1.getSignatureId()).isNotEqualTo(saved2.getSignatureId());
+        assertThat(signatureRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void saveSignatures_DifferentHotels_EachIsolated() {
+        // Arrange
+        Signature sig1 = new Signature(HOTEL_ID_1, "hotel1-sig".getBytes(StandardCharsets.UTF_8));
+        Signature sig2 = new Signature(HOTEL_ID_2, "hotel2-sig".getBytes(StandardCharsets.UTF_8));
+
+        // Act
+        Signature saved1 = signatureRepository.save(sig1);
+        Signature saved2 = signatureRepository.save(sig2);
+
+        // Assert - each can only be accessed with correct hotel ID
+        assertThat(signatureRepository.findBySignatureIdAndHotelId(saved1.getSignatureId(), HOTEL_ID_1)).isPresent();
+        assertThat(signatureRepository.findBySignatureIdAndHotelId(saved1.getSignatureId(), HOTEL_ID_2)).isEmpty();
+        assertThat(signatureRepository.findBySignatureIdAndHotelId(saved2.getSignatureId(), HOTEL_ID_2)).isPresent();
+        assertThat(signatureRepository.findBySignatureIdAndHotelId(saved2.getSignatureId(), HOTEL_ID_1)).isEmpty();
+    }
+}
+
