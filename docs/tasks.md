@@ -71,17 +71,21 @@
 ## Phase 4: Rental & RentalItem Entities
 
 ### Backend
-- [ ] **4.1** Create `HotelSettings` entity (settings_id, hotel_id FK unique, rental_duration_options JSON, grace_minutes, tnc_text, tnc_version)
+- [x] **4.1** Create `HotelSettings` entity (settings_id, hotel_id FK unique, rental_duration_options JSON, grace_minutes, tnc_text, tnc_version)
   - **Note:** MVP uses hardcoded defaults; entity created for future Settings UI
-- [ ] **4.2** Create `HotelSettingsRepository`
-- [ ] **4.3** Implement `HotelSettingsService` with fallback to defaults when settings null/missing
-- [ ] **4.4** Create `Signature` entity (signature_id, storage_ref/blob, created_at)
-- [ ] **4.5** Create `SignatureRepository`
-- [ ] **4.6** Create `Rental` entity (rental_id, hotel_id, status enum, start_at, due_at, return_at, room_number, bed_number nullable, tnc_version, signature_id FK)
-- [ ] **4.7** Create `RentalRepository` with queries scoped by hotelId (find by status, find active/overdue)
-- [ ] **4.8** Create `RentalItem` entity (rental_item_id, rental_id FK, bike_id FK, status enum, returned_at, lost_reason)
-- [ ] **4.9** Create `RentalItemRepository`
-- [ ] **4.10** Add unique constraint helper for invariant I1 (one RENTED item per bike at a time)
+- [x] **4.2** Create `HotelSettingsRepository`
+- [x] **4.3** Implement `HotelSettingsService` with fallback to defaults when settings null/missing
+- [x] **4.4** Create `Signature` entity (signature_id, hotel_id, storage_ref/blob, created_at)
+  - **Note:** Added hotelId field for multi-tenant scoping
+- [x] **4.5** Create `SignatureRepository`
+  - **Note:** Includes hotel-scoped findBySignatureIdAndHotelId method
+- [x] **4.6** Create `Rental` entity (rental_id, hotel_id, status enum, start_at, due_at, return_at, room_number, bed_number nullable, tnc_version, signature_id FK)
+- [x] **4.7** Create `RentalRepository` with queries scoped by hotelId (find by status, find active/overdue)
+- [x] **4.8** Create `RentalItem` entity (rental_item_id, rental_id FK, bike_id FK, status enum, returned_at, lost_reason)
+- [x] **4.9** Create `RentalItemRepository`
+  - **Note:** Bike-scoped queries include hotelId for multi-tenant safety
+- [x] **4.10** Add unique constraint helper for invariant I1 (one RENTED item per bike at a time)
+  - **Note:** SQL migration script in scripts/setup/add_i1_constraint.sql (manual execution)
 
 ---
 
@@ -338,7 +342,7 @@
 | 1. Setup | Complete | Backend at root, frontend in /frontend. JWT/validation/H2 deps added. CORS configured. |
 | 2. Auth | Complete | Hotel entity, JWT service, Spring Security, login endpoint, protected routes, AuthContext. |
 | 3. Bikes | Complete | Bike entity, repository, service, controller. OOO/AVAILABLE transitions with business rules. Unit tests + integration test for unique constraint. |
-| 4. Rental Entities | Not started | |
+| 4. Rental Entities | Complete | HotelSettings, Signature, Rental, RentalItem entities with repos. HotelSettingsService with defaults. I1 constraint SQL migration script. All hotel-scoped for multi-tenant safety. |
 | 5. New Rental Flow | Not started | No backend draft - frontend state only |
 | 6. Guest/Create | Not started | Single POST /api/rentals (no draft finalize) |
 | 7. Home Overview | Not started | |
