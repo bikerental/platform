@@ -41,6 +41,7 @@ public class HotelSettingsService {
     public int getGraceMinutes(Long hotelId) {
         return hotelSettingsRepository.findByHotelId(hotelId)
                 .map(HotelSettings::getGraceMinutes)
+                .map(minutes -> minutes != null ? minutes : DEFAULT_GRACE_MINUTES)
                 .orElse(DEFAULT_GRACE_MINUTES);
     }
 
