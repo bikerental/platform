@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from './AuthContext'
+import { useAuth } from '../AuthContext'
 
 export function LoginPage() {
   const [hotelCode, setHotelCode] = useState('')
@@ -119,3 +119,4 @@ export function LoginPage() {
     </div>
   )
 }
+

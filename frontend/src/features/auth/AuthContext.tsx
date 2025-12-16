@@ -5,19 +5,8 @@ import {
   logout as authLogout, 
   isAuthenticated as checkAuth,
   getHotelName,
-} from '../../services/authService'
-import type { LoginRequest } from '../../services/authService'
-
-interface AuthState {
-  isAuthenticated: boolean
-  hotelName: string | null
-  isLoading: boolean
-}
-
-interface AuthContextType extends AuthState {
-  login: (credentials: LoginRequest) => Promise<void>
-  logout: () => void
-}
+} from './api/authApi'
+import type { LoginRequest, AuthState, AuthContextType } from './types'
 
 const AuthContext = createContext<AuthContextType | null>(null)
 

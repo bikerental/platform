@@ -1,24 +1,19 @@
-import { apiUrl } from '../config/api'
+/**
+ * Auth API layer
+ * Handles authentication API calls and token/session storage.
+ */
 
-export interface LoginRequest {
-  hotelCode: string
-  password: string
-}
+import { apiUrl, setToken, clearToken, getToken } from '@/lib/api'
+import type { LoginRequest, LoginResponse } from '../types'
 
-export interface LoginResponse {
-  accessToken: string
-  hotelName: string
-}
+const HOTEL_NAME_KEY = 'hotel_name'
 
-export interface ErrorResponse {
+interface ErrorResponse {
   error: string
   message: string
   details?: Record<string, unknown>
   timestamp: string
 }
-
-const TOKEN_KEY = 'auth_token'
-const HOTEL_NAME_KEY = 'hotel_name'
 
 /**
  * Login with hotel credentials
@@ -46,7 +41,7 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   const data: LoginResponse = await response.json()
   
   // Store token and hotel name
-  localStorage.setItem(TOKEN_KEY, data.accessToken)
+  setToken(data.accessToken)
   localStorage.setItem(HOTEL_NAME_KEY, data.hotelName)
   
   return data
@@ -56,15 +51,8 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
  * Logout - clear stored auth data
  */
 export function logout(): void {
-  localStorage.removeItem(TOKEN_KEY)
+  clearToken()
   localStorage.removeItem(HOTEL_NAME_KEY)
-}
-
-/**
- * Get stored auth token
- */
-export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
 }
 
 /**
@@ -80,3 +68,4 @@ export function getHotelName(): string | null {
 export function isAuthenticated(): boolean {
   return getToken() !== null
 }
+

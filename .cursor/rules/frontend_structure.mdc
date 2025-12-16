@@ -1,16 +1,52 @@
 ---
-description: Frontend structure for Vite + React + TS + Tailwind.
+description: Frontend architecture and boundaries (feature-first).
 globs: ["frontend/src/**"]
-alwaysApply: false
+alwaysApply: true
 ---
+# Frontend Structure (Feature-first)
 
-# Frontend Structure
+## 1) Folder layout (single source of truth)
+- Features own product code:
+  - `features/<feature>/pages/*` (route-level screens)
+  - `features/<feature>/components/*` (feature UI)
+  - `features/<feature>/hooks/*` (feature hooks)
+  - `features/<feature>/api/*` (feature services calling the HTTP client)
+  - `features/<feature>/types.ts`
+  - `features/<feature>/index.ts` (public exports only)
 
-- Organize by routes/features: `routes/`, `features/<name>/components`, `features/<name>/hooks`, `services/` for API clients, `components/ui` for primitives.
-- Routing: React Router; keep route components thin; delegate logic to feature components/hooks.
-- State: prefer local state + feature-scoped context/hooks; avoid global state libs in MVP; no prop drilling—introduce small contexts per feature if needed.
-- Styling: Tailwind utility classes; avoid large custom CSS; keep `index.css` minimal for base styles.
-- API calls: centralize in `services/` using `api.ts` helper; see `api_rules.mdc` for auth/error handling.
-- Components: functional components only; keep under ~200 lines; extract reusable UI pieces to `components/ui`.
-- Forms: controlled inputs; basic validation client-side before calling APIs; show clear errors.
-- Files: one component per file; colocate tests/stories if added later.
+- Shared UI + layout:
+  - `components/ui/*` reusable primitives (Button, Input, Modal, Table, Badge, etc.)
+  - `components/layout/*` app shells (AppLayout, nav, etc.)
+
+- Infrastructure:
+  - `lib/api.ts` HTTP client (baseURL, interceptors, auth header, error normalization)
+  - optional `lib/utils.ts` small helpers
+
+> Avoid `routes/` unless it’s only a thin router config file. Route screens live in `features/*/pages`.
+
+## 2) Import boundaries (strict)
+- `components/*` MUST NOT import from `features/*`.
+- A feature MUST NOT import another feature’s internal files.
+- Cross-feature usage (if needed) MUST import from the feature’s public barrel:
+  - ✅ `import { X } from "@/features/auth"`
+  - ❌ `import { X } from "@/features/auth/components/X"`
+
+## 3) API layering
+- Components/pages DO NOT call `lib/api.ts` directly.
+- Pages/components call feature hooks/services.
+- Feature services (`features/<feature>/api/*`) are the only place calling `lib/api.ts`.
+- API functions return typed data and throw normalized errors.
+
+## 4) Page composition rule
+- Pages orchestrate data & UI composition.
+- Extract tables/modals/complex widgets into `features/<feature>/components`.
+- Extract shared patterns into `components/ui` once used by 2+ features.
+- Keep files under ~200 LOC. If >200 LOC, split.
+
+## 5) State rule (MVP-friendly)
+- Prefer local state + feature hooks.
+- Use small feature-scoped context only when needed (avoid global state libs for MVP).
+- Debounce search inputs when they trigger API calls.
+
+## 6) Styling
+- Tailwind utilities only; keep `index.css` minimal (base + fonts).
