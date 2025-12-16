@@ -46,25 +46,25 @@
 ## Phase 3: Bike Entity & Inventory
 
 ### Backend
-- [ ] **3.1** Create `Bike` entity (bike_id, hotel_id, bike_number, bike_type, status enum, ooo_note, ooo_since)
-- [ ] **3.2** Create `BikeRepository` with queries scoped by hotelId
-- [ ] **3.3** Implement `BikeService`:
-  - [ ] List bikes (filter by status, search by bike_number)
-  - [ ] Find bike by number within hotel
-  - [ ] Mark bike OOO (set status, note, ooo_since)
-  - [ ] Mark bike available (fail if currently in RENTED rental item)
-- [ ] **3.4** Create `BikeController`:
-  - [ ] `GET /api/bikes?status=&q=`
-  - [ ] `PATCH /api/bikes/{bikeId}/ooo`
-  - [ ] `PATCH /api/bikes/{bikeId}/available`
-- [ ] **3.5** Add DB seed script for initial hotel + bikes (dev/test data)
+- [x] **3.1** Create `Bike` entity (bike_id, hotel_id, bike_number, bike_type, status enum, ooo_note, ooo_since)
+- [x] **3.2** Create `BikeRepository` with queries scoped by hotelId
+- [x] **3.3** Implement `BikeService`:
+  - [x] List bikes (filter by status, search by bike_number)
+  - [x] Find bike by number within hotel
+  - [x] Mark bike OOO (set status, note, ooo_since)
+  - [x] Mark bike available (fail if currently in RENTED rental item)
+- [x] **3.4** Create `BikeController`:
+  - [x] `GET /api/bikes?status=&q=`
+  - [x] `PATCH /api/bikes/{bikeId}/ooo`
+  - [x] `PATCH /api/bikes/{bikeId}/available`
+- [x] **3.5** Add DB seed script for initial hotel + bikes (dev/test data)
 
 ### Frontend
-- [ ] **3.6** Create `/bikes` route and BikesPage component
-- [ ] **3.7** Implement bike list with status filter and search input
-- [ ] **3.8** Add "Mark OOO" action with note input dialog
-- [ ] **3.9** Add "Mark Available" action (disabled if bike is rented)
-- [ ] **3.10** Display bike status badges (AVAILABLE, RENTED, OOO)
+- [x] **3.6** Create `/bikes` route and BikesPage component
+- [x] **3.7** Implement bike list with status filter and search input
+- [x] **3.8** Add "Mark OOO" action with note input dialog
+- [x] **3.9** Add "Mark Available" action (disabled if bike is rented)
+- [x] **3.10** Display bike status badges (AVAILABLE, RENTED, OOO)
 
 ---
 
@@ -286,7 +286,7 @@
 ## Phase 15: Testing
 
 - [ ] **15.1** Unit tests: `RentalService` – create rental, partial returns, return all, mark lost
-- [ ] **15.2** Unit tests: `BikeService` – OOO/available transitions, availability checks
+- [x] **15.2** Unit tests: `BikeService` – OOO/available transitions, availability checks
 - [ ] **15.3** Unit tests: Invariant I1 – prevent double-renting a bike
 - [ ] **15.4** Unit tests: Invariant I2 – OOO bikes cannot be assigned
 - [ ] **15.5** Unit tests: Rental status derivation logic
@@ -337,7 +337,7 @@
 |-------|--------|-------|
 | 1. Setup | Complete | Backend at root, frontend in /frontend. JWT/validation/H2 deps added. CORS configured. |
 | 2. Auth | Complete | Hotel entity, JWT service, Spring Security, login endpoint, protected routes, AuthContext. |
-| 3. Bikes | Not started | |
+| 3. Bikes | Complete | Bike entity, repository, service, controller. OOO/AVAILABLE transitions with business rules. Unit tests + integration test for unique constraint. |
 | 4. Rental Entities | Not started | |
 | 5. New Rental Flow | Not started | No backend draft - frontend state only |
 | 6. Guest/Create | Not started | Single POST /api/rentals (no draft finalize) |

@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute, LoginPage } from './features/auth'
+import { BikesPage } from './features/bikes'
 import { AppLayout } from './components/layout/AppLayout'
 
 // Placeholder pages - will be implemented in later phases
@@ -16,15 +17,6 @@ function HomePage() {
         <StatCard label="Active Rentals" value="--" color="blue" />
         <StatCard label="Overdue" value="--" color="red" />
       </div>
-    </div>
-  )
-}
-
-function BikesPage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-4">Bikes</h1>
-      <p className="text-slate-600">Bike inventory management coming in Phase 3.</p>
     </div>
   )
 }
