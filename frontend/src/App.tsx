@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute, LoginPage } from './features/auth'
 import { BikesPage } from './features/bikes'
+import { NewRentalPage } from './features/rentals'
 import { AppLayout } from './components/layout/AppLayout'
 
 // Placeholder pages - will be implemented in later phases
@@ -51,6 +52,7 @@ function App() {
         }>
           <Route path="/" element={<HomePage />} />
           <Route path="/bikes" element={<BikesPage />} />
+          <Route path="/rentals/new" element={<NewRentalPage />} />
         </Route>
       </Routes>
     </AuthProvider>
