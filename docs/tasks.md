@@ -112,21 +112,21 @@
 > **Note:** Single atomic `POST /api/rentals` creates the rental with all data. No draft endpoints.
 
 ### Backend
-- [ ] **6.1** Implement `SignatureService` (store base64 PNG as MEDIUMBLOB, return signature_id)
-- [ ] **6.2** Implement `RentalService.createRental()`:
-  - [ ] Validate request has ≥1 bike number
-  - [ ] Validate all bikes exist, belong to hotel, and are AVAILABLE (not RENTED/OOO)
-  - [ ] Store signature
-  - [ ] Compute start_at = now (UTC), due_at from returnDateTime
-  - [ ] Create Rental (ACTIVE) with room/bed, tnc_version, signature_id
-  - [ ] Create RentalItems (RENTED) for each bike
-  - [ ] Update each bike status to RENTED
-  - [ ] All in single transaction (atomic)
-  - [ ] Return created rental
-- [ ] **6.3** Create endpoint `POST /api/rentals`
+- [x] **6.1** Implement `SignatureService` (store base64 PNG as MEDIUMBLOB, return signature_id)
+- [x] **6.2** Implement `RentalService.createRental()`:
+  - [x] Validate request has ≥1 bike number
+  - [x] Validate all bikes exist, belong to hotel, and are AVAILABLE (not RENTED/OOO)
+  - [x] Store signature
+  - [x] Compute start_at = now (UTC), due_at from returnDateTime
+  - [x] Create Rental (ACTIVE) with room/bed, tnc_version, signature_id
+  - [x] Create RentalItems (RENTED) for each bike
+  - [x] Update each bike status to RENTED
+  - [x] All in single transaction (atomic)
+  - [x] Return created rental
+- [x] **6.3** Create endpoint `POST /api/rentals`
   - Request: `{ bikeNumbers: string[], roomNumber, bedNumber?, returnDateTime, tncVersion, signatureBase64Png }`
   - Response 201: rental with id, status, startAt, dueAt, items
-- [ ] **6.4** Handle creation errors (409 if any bike unavailable with specific bike numbers in error)
+- [x] **6.4** Handle creation errors (409 if any bike unavailable with specific bike numbers in error)
 
 ### Frontend
 - [ ] **6.5** Create `/rentals/new/guest` route and GuestModePage component
