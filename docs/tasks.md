@@ -94,15 +94,16 @@
 > **Note:** No backend draft persistence. Frontend manages bike assignment state locally. Backend validates bike availability at rental creation time.
 
 ### Backend
-- [ ] **5.1** Implement `GET /api/bikes/{bikeNumber}` to check bike availability by number (returns bike details + status)
+- [x] **5.1** Implement `GET /api/bikes/{bikeNumber}` to check bike availability by number (returns bike details + status)
+  - **Note:** Already exists as `GET /api/bikes/by-number/{bikeNumber}` from Phase 3
 
 ### Frontend
-- [ ] **5.2** Create `/rentals/new` route and NewRentalPage (staff mode)
-- [ ] **5.3** Manage assigned bikes in React state (no backend call until finalization)
-- [ ] **5.4** Implement bike number input + "Add bike" button (validate via `GET /api/bikes/{bikeNumber}`)
-- [ ] **5.5** Display assigned bikes list with remove buttons
-- [ ] **5.6** Show validation errors (bike not found, not available, duplicate in local list)
-- [ ] **5.7** "Continue & hand to guest" button (disabled if no bikes); navigates to `/rentals/new/guest` with bike data in state/URL
+- [x] **5.2** Create `/rentals/new` route and NewRentalPage (staff mode)
+- [x] **5.3** Manage assigned bikes in React state (no backend call until finalization)
+- [x] **5.4** Implement bike number input + "Add bike" button (validate via `GET /api/bikes/{bikeNumber}`)
+- [x] **5.5** Display assigned bikes list with remove buttons
+- [x] **5.6** Show validation errors (bike not found, not available, duplicate in local list)
+- [x] **5.7** "Continue & hand to guest" button (disabled if no bikes); navigates to `/rentals/new/guest` with bike data in state/URL
 
 ---
 
@@ -343,7 +344,7 @@
 | 2. Auth | Complete | Hotel entity, JWT service, Spring Security, login endpoint, protected routes, AuthContext. |
 | 3. Bikes | Complete | Bike entity, repository, service, controller. OOO/AVAILABLE transitions with business rules. Unit tests + integration test for unique constraint. |
 | 4. Rental Entities | Complete | HotelSettings, Signature, Rental, RentalItem entities with repos. HotelSettingsService with defaults. I1 constraint SQL migration script. All hotel-scoped for multi-tenant safety. |
-| 5. New Rental Flow | Not started | No backend draft - frontend state only |
+| 5. New Rental Flow | Complete | Backend endpoint already existed. Frontend: NewRentalPage with bike assignment, validation, error handling. |
 | 6. Guest/Create | Not started | Single POST /api/rentals (no draft finalize) |
 | 7. Home Overview | Not started | |
 | 8. Rental Detail | Not started | |

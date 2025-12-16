@@ -45,6 +45,7 @@ export function AppLayout() {
           <div className="flex gap-1 py-2">
             <NavLink to="/">Home</NavLink>
             <NavLink to="/bikes">Bikes</NavLink>
+            <NavLink to="/rentals/new">New Rental</NavLink>
           </div>
         </div>
       </nav>

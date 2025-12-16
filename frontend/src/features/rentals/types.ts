@@ -1,0 +1,83 @@
+/**
+ * Rentals feature type definitions
+ */
+
+import type { Bike } from '@/features/bikes'
+
+/**
+ * A bike that has been assigned to a new rental (staff mode state)
+ */
+export interface AssignedBike {
+  bikeId: number
+  bikeNumber: string
+  bikeType: string | null
+}
+
+/**
+ * Convert a Bike to AssignedBike
+ */
+export function toAssignedBike(bike: Bike): AssignedBike {
+  return {
+    bikeId: bike.bikeId,
+    bikeNumber: bike.bikeNumber,
+    bikeType: bike.bikeType,
+  }
+}
+
+/**
+ * Rental status
+ */
+export type RentalStatus = 'ACTIVE' | 'OVERDUE' | 'CLOSED'
+
+/**
+ * Rental item status
+ */
+export type RentalItemStatus = 'RENTED' | 'RETURNED' | 'LOST'
+
+/**
+ * Rental item in a rental
+ */
+export interface RentalItem {
+  rentalItemId: number
+  bikeId: number
+  bikeNumber: string
+  bikeType: string | null
+  status: RentalItemStatus
+  returnedAt: string | null
+  lostReason: string | null
+}
+
+/**
+ * Full rental details
+ */
+export interface Rental {
+  rentalId: number
+  status: RentalStatus
+  startAt: string
+  dueAt: string
+  returnAt: string | null
+  roomNumber: string
+  bedNumber: string | null
+  items: RentalItem[]
+}
+
+/**
+ * Request body for creating a rental
+ */
+export interface CreateRentalRequest {
+  bikeNumbers: string[]
+  roomNumber: string
+  bedNumber?: string
+  returnDateTime: string
+  tncVersion: string
+  signatureBase64Png: string
+}
+
+/**
+ * Validation error for bike assignment
+ */
+export type BikeValidationError =
+  | { type: 'NOT_FOUND'; bikeNumber: string }
+  | { type: 'NOT_AVAILABLE'; bikeNumber: string; status: string }
+  | { type: 'DUPLICATE'; bikeNumber: string }
+
