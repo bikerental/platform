@@ -1,6 +1,6 @@
 ---
-description: General coding principles (SOLID, GRASP, DRY/KISS) for backend and frontend.
-globs: ["**/*.java", "**/*.ts", "**/*.tsx"]
+description: General coding principles (SOLID, GRASP, DRY/KISS).
+globs: ["src/main/java/**", "src/test/java/**", "frontend/src/**"]
 alwaysApply: false
 ---
 

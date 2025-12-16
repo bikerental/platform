@@ -1,6 +1,11 @@
 ---
-description: API usage rules (backend controllers + frontend API calls).
-globs: ["**/controller/**", "frontend/src/services/**", "frontend/src/**/api*.ts", "frontend/src/**/use*.ts"]
+description: API usage rules (backend controllers + frontend API layer).
+globs: [
+  "src/main/java/**/controller/**",
+  "frontend/src/lib/**",
+  "frontend/src/services/**",
+  "frontend/src/features/**/api/**"
+]
 alwaysApply: false
 ---
 
