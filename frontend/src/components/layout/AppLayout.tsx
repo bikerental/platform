@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../features/auth/AuthContext'
+import { useAuth } from '@/features/auth'
 
 /**
  * Main application layout with header, navigation, and content area.
