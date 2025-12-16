@@ -10,9 +10,12 @@ import java.time.Instant;
 /**
  * Stores the guest's signature as a PNG image blob.
  * Immutable once created - tied to a specific rental contract.
+ * Hotel-scoped for multi-tenant security.
  */
 @Entity
-@Table(name = "signatures")
+@Table(name = "signatures", indexes = {
+    @Index(name = "idx_signature_hotel", columnList = "hotel_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,6 +25,13 @@ public class Signature {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "signature_id")
     private Long signatureId;
+
+    /**
+     * Hotel ID for multi-tenant scoping.
+     * Ensures signatures cannot be accessed across hotels.
+     */
+    @Column(name = "hotel_id", nullable = false)
+    private Long hotelId;
 
     @Lob
     @Column(name = "signature_data", nullable = false, columnDefinition = "MEDIUMBLOB")
@@ -35,7 +45,8 @@ public class Signature {
         createdAt = Instant.now();
     }
 
-    public Signature(byte[] signatureData) {
+    public Signature(Long hotelId, byte[] signatureData) {
+        this.hotelId = hotelId;
         this.signatureData = signatureData;
     }
 }
