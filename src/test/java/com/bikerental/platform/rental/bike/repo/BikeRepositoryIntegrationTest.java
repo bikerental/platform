@@ -19,10 +19,11 @@ import com.bikerental.platform.rental.bike.model.Bike;
  */
 @DataJpaTest
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
     "spring.datasource.driver-class-name=org.h2.Driver",
     "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.show-sql=true"
+    "spring.jpa.show-sql=true",
+    "spring.sql.init.mode=never"
 })
 @Transactional
 class BikeRepositoryIntegrationTest {
