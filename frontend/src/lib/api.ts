@@ -1,5 +1,39 @@
-import { apiUrl } from '../config/api'
-import { getToken, logout } from './authService'
+/**
+ * HTTP Client Infrastructure
+ * Centralized API client with auth header injection and error handling.
+ */
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
+const TOKEN_KEY = 'auth_token'
+
+/**
+ * Helper to build API endpoint URLs
+ */
+export function apiUrl(path: string): string {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`
+  return `${API_BASE_URL}${cleanPath}`
+}
+
+/**
+ * Get stored auth token (used by HTTP client for auth header)
+ */
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY)
+}
+
+/**
+ * Set auth token (called by auth feature on login)
+ */
+export function setToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token)
+}
+
+/**
+ * Clear auth token (called by auth feature on logout, or by HTTP client on 401)
+ */
+export function clearToken(): void {
+  localStorage.removeItem(TOKEN_KEY)
+}
 
 export interface ApiError {
   error: string
@@ -44,7 +78,7 @@ export async function apiFetch<T>(
 
   // Handle 401 - unauthorized
   if (response.status === 401) {
-    logout()
+    clearToken()
     window.location.href = '/login'
     throw new Error('Session expired. Please login again.')
   }
@@ -100,3 +134,4 @@ export function apiPatch<T>(path: string, body?: unknown): Promise<T> {
 export function apiDelete<T>(path: string): Promise<T> {
   return apiFetch<T>(path, { method: 'DELETE' })
 }
+
