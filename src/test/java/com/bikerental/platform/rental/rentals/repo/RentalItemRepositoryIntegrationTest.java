@@ -98,30 +98,32 @@ class RentalItemRepositoryIntegrationTest {
     }
 
     @Test
-    void existsByBikeIdAndStatus_WhenRented_ReturnsTrue() {
+    void existsByHotelIdAndBikeIdAndStatus_WhenRented_ReturnsTrue() {
         // Arrange
         RentalItem item = new RentalItem(testRental, BIKE_ID_1);
         item.setStatus(RentalItemStatus.RENTED);
         rentalItemRepository.save(item);
+        entityManager.flush();
 
         // Act
-        boolean exists = rentalItemRepository.existsByBikeIdAndStatus(BIKE_ID_1, RentalItemStatus.RENTED);
+        boolean exists = rentalItemRepository.existsByHotelIdAndBikeIdAndStatus(HOTEL_ID, BIKE_ID_1, RentalItemStatus.RENTED);
 
         // Assert
         assertThat(exists).isTrue();
     }
 
     @Test
-    void existsByBikeIdAndStatus_WhenReturned_ReturnsFalseForRented() {
+    void existsByHotelIdAndBikeIdAndStatus_WhenReturned_ReturnsFalseForRented() {
         // Arrange
         RentalItem item = new RentalItem(testRental, BIKE_ID_1);
         item.setStatus(RentalItemStatus.RETURNED);
         item.setReturnedAt(Instant.now());
         rentalItemRepository.save(item);
+        entityManager.flush();
 
         // Act
-        boolean existsRented = rentalItemRepository.existsByBikeIdAndStatus(BIKE_ID_1, RentalItemStatus.RENTED);
-        boolean existsReturned = rentalItemRepository.existsByBikeIdAndStatus(BIKE_ID_1, RentalItemStatus.RETURNED);
+        boolean existsRented = rentalItemRepository.existsByHotelIdAndBikeIdAndStatus(HOTEL_ID, BIKE_ID_1, RentalItemStatus.RENTED);
+        boolean existsReturned = rentalItemRepository.existsByHotelIdAndBikeIdAndStatus(HOTEL_ID, BIKE_ID_1, RentalItemStatus.RETURNED);
 
         // Assert
         assertThat(existsRented).isFalse();
@@ -129,18 +131,53 @@ class RentalItemRepositoryIntegrationTest {
     }
 
     @Test
-    void findByBikeIdAndStatus_ReturnsCorrectItem() {
+    void existsByHotelIdAndBikeIdAndStatus_WithWrongHotel_ReturnsFalse() {
+        // Arrange
+        RentalItem item = new RentalItem(testRental, BIKE_ID_1);
+        item.setStatus(RentalItemStatus.RENTED);
+        rentalItemRepository.save(item);
+        entityManager.flush();
+
+        Long wrongHotelId = 999L;
+
+        // Act - try with wrong hotel ID
+        boolean exists = rentalItemRepository.existsByHotelIdAndBikeIdAndStatus(wrongHotelId, BIKE_ID_1, RentalItemStatus.RENTED);
+
+        // Assert - should not find it
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    void findByHotelIdAndBikeIdAndStatus_ReturnsCorrectItem() {
         // Arrange
         RentalItem rentedItem = new RentalItem(testRental, BIKE_ID_1);
         rentedItem.setStatus(RentalItemStatus.RENTED);
         rentalItemRepository.save(rentedItem);
+        entityManager.flush();
 
         // Act
-        var result = rentalItemRepository.findByBikeIdAndStatus(BIKE_ID_1, RentalItemStatus.RENTED);
+        var result = rentalItemRepository.findByHotelIdAndBikeIdAndStatus(HOTEL_ID, BIKE_ID_1, RentalItemStatus.RENTED);
 
         // Assert
         assertThat(result).isPresent();
         assertThat(result.get().getBikeId()).isEqualTo(BIKE_ID_1);
+    }
+
+    @Test
+    void findByHotelIdAndBikeIdAndStatus_WithWrongHotel_ReturnsEmpty() {
+        // Arrange
+        RentalItem rentedItem = new RentalItem(testRental, BIKE_ID_1);
+        rentedItem.setStatus(RentalItemStatus.RENTED);
+        rentalItemRepository.save(rentedItem);
+        entityManager.flush();
+
+        Long wrongHotelId = 999L;
+
+        // Act - try with wrong hotel ID
+        var result = rentalItemRepository.findByHotelIdAndBikeIdAndStatus(wrongHotelId, BIKE_ID_1, RentalItemStatus.RENTED);
+
+        // Assert - should not find it
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -195,7 +232,7 @@ class RentalItemRepositoryIntegrationTest {
      * This is the service-level pre-check for I1 invariant enforcement.
      */
     @Test
-    void i1_existsByBikeIdAndStatus_DetectsAlreadyRentedBike() {
+    void i1_existsByHotelIdAndBikeIdAndStatus_DetectsAlreadyRentedBike() {
         // Arrange - bike is rented in first rental
         RentalItem firstRental = new RentalItem(testRental, BIKE_ID_1);
         firstRental.setStatus(RentalItemStatus.RENTED);
@@ -203,8 +240,8 @@ class RentalItemRepositoryIntegrationTest {
         entityManager.flush();
 
         // Act - check if bike can be rented again (service-level I1 check)
-        boolean isAlreadyRented = rentalItemRepository.existsByBikeIdAndStatus(
-                BIKE_ID_1, RentalItemStatus.RENTED);
+        boolean isAlreadyRented = rentalItemRepository.existsByHotelIdAndBikeIdAndStatus(
+                HOTEL_ID, BIKE_ID_1, RentalItemStatus.RENTED);
 
         // Assert
         assertThat(isAlreadyRented).isTrue();
@@ -224,8 +261,8 @@ class RentalItemRepositoryIntegrationTest {
         entityManager.flush();
 
         // Act - check if bike can be rented again
-        boolean isCurrentlyRented = rentalItemRepository.existsByBikeIdAndStatus(
-                BIKE_ID_1, RentalItemStatus.RENTED);
+        boolean isCurrentlyRented = rentalItemRepository.existsByHotelIdAndBikeIdAndStatus(
+                HOTEL_ID, BIKE_ID_1, RentalItemStatus.RENTED);
 
         // Assert - bike should be available for new rental
         assertThat(isCurrentlyRented).isFalse();
@@ -264,9 +301,9 @@ class RentalItemRepositoryIntegrationTest {
         entityManager.flush();
 
         // Act
-        List<RentalItem> bikeHistory = rentalItemRepository.findByBikeId(BIKE_ID_1);
-        boolean isCurrentlyRented = rentalItemRepository.existsByBikeIdAndStatus(
-                BIKE_ID_1, RentalItemStatus.RENTED);
+        List<RentalItem> bikeHistory = rentalItemRepository.findByHotelIdAndBikeId(HOTEL_ID, BIKE_ID_1);
+        boolean isCurrentlyRented = rentalItemRepository.existsByHotelIdAndBikeIdAndStatus(
+                HOTEL_ID, BIKE_ID_1, RentalItemStatus.RENTED);
 
         // Assert
         assertThat(bikeHistory).hasSize(2); // Multiple historical rentals OK
