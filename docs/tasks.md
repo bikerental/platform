@@ -146,20 +146,20 @@
 ## Phase 7: Home Screen & Overview
 
 ### Backend
-- [ ] **7.1** Implement `OverviewService`:
-  - [ ] Count bikes by status (AVAILABLE, RENTED, OOO) for hotel
-  - [ ] Count rentals by status (ACTIVE, OVERDUE) for hotel
-  - [ ] List active/overdue rentals with summary (id, room/bed, dueAt, status, bikesOut, bikesTotal)
-- [ ] **7.2** Create `OverviewController` with `GET /api/overview`
+- [x] **7.1** Implement `OverviewService`:
+  - [x] Count bikes by status (AVAILABLE, RENTED, OOO) for hotel
+  - [x] Count rentals by status (ACTIVE, OVERDUE) for hotel
+  - [x] List active/overdue rentals with summary (id, room/bed, dueAt, status, bikesOut, bikesTotal)
+- [x] **7.2** Create `OverviewController` with `GET /api/overview`
 
 ### Frontend
-- [ ] **7.3** Create `/` route and HomePage component
-- [ ] **7.4** Display summary counts in header/cards (bikes available/rented/OOO, rentals active/overdue)
-- [ ] **7.5** Display active rentals list (overdue highlighted, sorted overdue-first then by dueAt)
-- [ ] **7.6** Each rental row: id, room/bed, due datetime, status badge, bikes out/total
-- [ ] **7.7** Rows clickable → navigate to `/rentals/:id`
-- [ ] **7.8** Implement search/filter (at least one of: room number, bike number, rental id)
-- [ ] **7.9** Add "New rental" button → navigate to `/rentals/new`
+- [x] **7.3** Create `/` route and HomePage component
+- [x] **7.4** Display summary counts in header/cards (bikes available/rented/OOO, rentals active/overdue)
+- [x] **7.5** Display active rentals list (overdue highlighted, sorted overdue-first then by dueAt)
+- [x] **7.6** Each rental row: id, room/bed, due datetime, status badge, bikes out/total
+- [x] **7.7** Rows clickable → navigate to `/rentals/:id`
+- [x] **7.8** Implement search/filter (at least one of: room number, bike number, rental id)
+- [x] **7.9** Add "New rental" button → navigate to `/rentals/new`
 
 ---
 
@@ -346,7 +346,7 @@
 | 4. Rental Entities | Complete | HotelSettings, Signature, Rental, RentalItem entities with repos. HotelSettingsService with defaults. I1 constraint SQL migration script. All hotel-scoped for multi-tenant safety. |
 | 5. New Rental Flow | Complete | Backend endpoint already existed. Frontend: NewRentalPage with bike assignment, validation, error handling. |
 | 6. Guest/Create | Complete | Backend: SignatureService, RentalService.createRental, POST /api/rentals with 409 handling. Frontend: GuestModePage with signature pad, T&C, form validation, success/error screens. |
-| 7. Home Overview | Not started | |
+| 7. Home Overview | Complete | Backend: OverviewService with bike/rental counts and active rentals list, OverviewController with GET /api/overview. Frontend: HomePage with stat cards, active rentals table with search/filter, clickable rows, "New rental" button. Auto-refresh every 30s. |
 | 8. Rental Detail | Not started | |
 | 9. Returns | Not started | |
 | 10. Mark Lost | Not started | |
