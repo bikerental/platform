@@ -167,7 +167,8 @@ class RentalRepositoryIntegrationTest {
         // Act
         List<Rental> result = rentalRepository.findActiveAndOverdueOrderedByUrgency(
                 HOTEL_ID_1,
-                Arrays.asList(RentalStatus.ACTIVE, RentalStatus.OVERDUE)
+                Arrays.asList(RentalStatus.ACTIVE, RentalStatus.OVERDUE),
+                RentalStatus.OVERDUE
         );
 
         // Assert

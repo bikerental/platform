@@ -23,6 +23,11 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
     List<Bike> findByHotelIdAndStatus(Long hotelId, Bike.BikeStatus status);
 
     /**
+     * Count bikes for a hotel with a specific status.
+     */
+    long countByHotelIdAndStatus(Long hotelId, Bike.BikeStatus status);
+
+    /**
      * Find a bike by hotel ID and bike number.
      */
     Optional<Bike> findByHotelIdAndBikeNumber(Long hotelId, String bikeNumber);

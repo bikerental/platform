@@ -36,32 +36,25 @@ public class OverviewService {
         Long hotelId = hotelContext.getCurrentHotelId();
 
         // Count bikes by status
-        int bikesAvailable = countBikesByStatus(hotelId, Bike.BikeStatus.AVAILABLE);
-        int bikesRented = countBikesByStatus(hotelId, Bike.BikeStatus.RENTED);
-        int bikesOoo = countBikesByStatus(hotelId, Bike.BikeStatus.OOO);
+        long bikesAvailable = bikeRepository.countByHotelIdAndStatus(hotelId, Bike.BikeStatus.AVAILABLE);
+        long bikesRented = bikeRepository.countByHotelIdAndStatus(hotelId, Bike.BikeStatus.RENTED);
+        long bikesOoo = bikeRepository.countByHotelIdAndStatus(hotelId, Bike.BikeStatus.OOO);
 
         // Count rentals by status
-        int rentalsActive = (int) rentalRepository.countByHotelIdAndStatus(hotelId, RentalStatus.ACTIVE);
-        int rentalsOverdue = (int) rentalRepository.countByHotelIdAndStatus(hotelId, RentalStatus.OVERDUE);
+        long rentalsActive = rentalRepository.countByHotelIdAndStatus(hotelId, RentalStatus.ACTIVE);
+        long rentalsOverdue = rentalRepository.countByHotelIdAndStatus(hotelId, RentalStatus.OVERDUE);
 
         // Get active and overdue rentals, ordered by urgency
         List<ActiveRentalSummary> activeRentals = getActiveRentalsSummary(hotelId);
 
         return OverviewResponse.builder()
-                .bikesAvailable(bikesAvailable)
-                .bikesRented(bikesRented)
-                .bikesOoo(bikesOoo)
-                .rentalsActive(rentalsActive)
-                .rentalsOverdue(rentalsOverdue)
+                .bikesAvailable((int) bikesAvailable)
+                .bikesRented((int) bikesRented)
+                .bikesOoo((int) bikesOoo)
+                .rentalsActive((int) rentalsActive)
+                .rentalsOverdue((int) rentalsOverdue)
                 .activeRentals(activeRentals)
                 .build();
-    }
-
-    /**
-     * Count bikes by status for a hotel.
-     */
-    private int countBikesByStatus(Long hotelId, Bike.BikeStatus status) {
-        return bikeRepository.findByHotelIdAndStatus(hotelId, status).size();
     }
 
     /**
@@ -70,7 +63,8 @@ public class OverviewService {
      */
     private List<ActiveRentalSummary> getActiveRentalsSummary(Long hotelId) {
         List<RentalStatus> statuses = List.of(RentalStatus.ACTIVE, RentalStatus.OVERDUE);
-        List<Rental> rentals = rentalRepository.findActiveAndOverdueOrderedByUrgency(hotelId, statuses);
+        List<Rental> rentals = rentalRepository.findActiveAndOverdueOrderedByUrgency(
+                hotelId, statuses, RentalStatus.OVERDUE);
 
         return rentals.stream()
                 .map(this::toActiveRentalSummary)
