@@ -2,6 +2,7 @@ package com.bikerental.platform.rental.rentals.repo;
 
 import com.bikerental.platform.rental.rentals.model.Rental;
 import com.bikerental.platform.rental.rentals.model.RentalStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -44,13 +45,16 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
 
     /**
      * Find active and overdue rentals for overview, ordered by overdue first then by dueAt.
+     * Eagerly fetches items to avoid N+1 queries when computing bikesOut/bikesTotal.
      */
+    @EntityGraph(attributePaths = "items")
     @Query("SELECT r FROM Rental r WHERE r.hotelId = :hotelId " +
            "AND r.status IN :statuses " +
-           "ORDER BY CASE WHEN r.status = 'OVERDUE' THEN 0 ELSE 1 END, r.dueAt ASC")
+           "ORDER BY CASE WHEN r.status = :overdue THEN 0 ELSE 1 END, r.dueAt ASC")
     List<Rental> findActiveAndOverdueOrderedByUrgency(
             @Param("hotelId") Long hotelId,
-            @Param("statuses") List<RentalStatus> statuses
+            @Param("statuses") List<RentalStatus> statuses,
+            @Param("overdue") RentalStatus overdue
     );
 }
 
