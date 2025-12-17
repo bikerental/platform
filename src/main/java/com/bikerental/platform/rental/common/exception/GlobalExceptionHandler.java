@@ -81,4 +81,19 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
+
+    @ExceptionHandler(BikeUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleBikeUnavailable(BikeUnavailableException ex) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("unavailableBikes", ex.getUnavailableBikes());
+
+        ErrorResponse response = new ErrorResponse(
+                "BIKES_UNAVAILABLE",
+                ex.getMessage(),
+                details,
+                Instant.now().toString()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
 }
