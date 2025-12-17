@@ -3,6 +3,7 @@
  */
 
 export { NewRentalPage } from './pages/NewRentalPage'
+export { GuestModePage } from './pages/GuestModePage'
 export { useNewRental } from './hooks/useNewRental'
 export type {
   AssignedBike,
