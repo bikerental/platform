@@ -65,6 +65,12 @@ export async function createRentalWithDetails(
       }
     }
 
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token')
+      window.location.href = '/login'
+      throw new Error('Unauthorized')
+    }
+
     // Handle other errors
     const errorData = await response.json().catch(() => ({ message: 'An error occurred' }))
     throw new Error(errorData.message)
