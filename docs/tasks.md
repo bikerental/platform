@@ -129,17 +129,17 @@
 - [x] **6.4** Handle creation errors (409 if any bike unavailable with specific bike numbers in error)
 
 ### Frontend
-- [ ] **6.5** Create `/rentals/new/guest` route and GuestModePage component
-- [ ] **6.6** Hide all staff navigation (header, sidebar) in guest mode
-- [ ] **6.7** Display assigned bikes (read-only list from state/URL params)
-- [ ] **6.8** Form inputs: return date picker, return time picker, room number (required), bed number (optional)
-- [ ] **6.9** Display T&C text (scrollable)
-- [ ] **6.10** Implement signature pad (canvas-based or library like react-signature-canvas)
-- [ ] **6.11** "Clear signature" button
-- [ ] **6.12** "Confirm rental" button with validation (future return time, room filled, signature present)
-- [ ] **6.13** On confirm: call `POST /api/rentals`; on success show "Rental created" confirmation screen
-- [ ] **6.14** Handle 409 error: show which bike(s) became unavailable, allow staff to reassign
-- [ ] **6.15** Confirmation screen has "Done" button to return to staff mode (navigate to `/rentals/:id` or `/`)
+- [x] **6.5** Create `/rentals/new/guest` route and GuestModePage component
+- [x] **6.6** Hide all staff navigation (header, sidebar) in guest mode
+- [x] **6.7** Display assigned bikes (read-only list from state/URL params)
+- [x] **6.8** Form inputs: return date picker, return time picker, room number (required), bed number (optional)
+- [x] **6.9** Display T&C text (scrollable)
+- [x] **6.10** Implement signature pad (canvas-based or library like react-signature-canvas)
+- [x] **6.11** "Clear signature" button
+- [x] **6.12** "Confirm rental" button with validation (future return time, room filled, signature present)
+- [x] **6.13** On confirm: call `POST /api/rentals`; on success show "Rental created" confirmation screen
+- [x] **6.14** Handle 409 error: show which bike(s) became unavailable, allow staff to reassign
+- [x] **6.15** Confirmation screen has "Done" button to return to staff mode (navigate to `/rentals/:id` or `/`)
 
 ---
 
@@ -345,7 +345,7 @@
 | 3. Bikes | Complete | Bike entity, repository, service, controller. OOO/AVAILABLE transitions with business rules. Unit tests + integration test for unique constraint. |
 | 4. Rental Entities | Complete | HotelSettings, Signature, Rental, RentalItem entities with repos. HotelSettingsService with defaults. I1 constraint SQL migration script. All hotel-scoped for multi-tenant safety. |
 | 5. New Rental Flow | Complete | Backend endpoint already existed. Frontend: NewRentalPage with bike assignment, validation, error handling. |
-| 6. Guest/Create | Not started | Single POST /api/rentals (no draft finalize) |
+| 6. Guest/Create | Complete | Backend: SignatureService, RentalService.createRental, POST /api/rentals with 409 handling. Frontend: GuestModePage with signature pad, T&C, form validation, success/error screens. |
 | 7. Home Overview | Not started | |
 | 8. Rental Detail | Not started | |
 | 9. Returns | Not started | |

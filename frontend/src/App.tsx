@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute, LoginPage } from './features/auth'
 import { BikesPage } from './features/bikes'
-import { NewRentalPage } from './features/rentals'
+import { NewRentalPage, GuestModePage } from './features/rentals'
 import { AppLayout } from './components/layout/AppLayout'
 
 // Placeholder pages - will be implemented in later phases
@@ -43,6 +43,16 @@ function App() {
       <Routes>
         {/* Public route */}
         <Route path="/login" element={<LoginPage />} />
+        
+        {/* Guest mode - protected but without staff navigation */}
+        <Route
+          path="/rentals/new/guest"
+          element={
+            <ProtectedRoute>
+              <GuestModePage />
+            </ProtectedRoute>
+          }
+        />
         
         {/* Protected routes with layout */}
         <Route element={
