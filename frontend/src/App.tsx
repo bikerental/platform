@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider, ProtectedRoute, LoginPage } from './features/auth'
 import { BikesPage } from './features/bikes'
-import { NewRentalPage, GuestModePage } from './features/rentals'
+import { NewRentalPage, GuestModePage, RentalDetailPage } from './features/rentals'
 import { HomePage } from './features/overview'
 import { AppLayout } from './components/layout/AppLayout'
 
@@ -31,6 +31,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/bikes" element={<BikesPage />} />
           <Route path="/rentals/new" element={<NewRentalPage />} />
+          <Route path="/rentals/:id" element={<RentalDetailPage />} />
         </Route>
       </Routes>
     </AuthProvider>
