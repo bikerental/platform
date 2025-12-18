@@ -6,6 +6,7 @@ import com.bikerental.platform.rental.bike.repo.BikeRepository;
 import com.bikerental.platform.rental.common.exception.BikeUnavailableException;
 import com.bikerental.platform.rental.common.exception.NotFoundException;
 import com.bikerental.platform.rental.rentals.dto.CreateRentalRequest;
+import com.bikerental.platform.rental.rentals.dto.MarkLostResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalDetailResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalItemDetailResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalItemResponse;
@@ -18,6 +19,7 @@ import com.bikerental.platform.rental.rentals.model.RentalItemStatus;
 import com.bikerental.platform.rental.rentals.model.RentalStatus;
 import com.bikerental.platform.rental.rentals.repo.RentalItemRepository;
 import com.bikerental.platform.rental.rentals.repo.RentalRepository;
+import com.bikerental.platform.rental.settings.service.HotelSettingsService;
 import com.bikerental.platform.rental.signature.service.SignatureService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,6 +48,7 @@ public class RentalService {
     private final BikeRepository bikeRepository;
     private final SignatureService signatureService;
     private final HotelContext hotelContext;
+    private final HotelSettingsService hotelSettingsService;
 
     /**
      * Create a new rental with the given bikes.
@@ -301,6 +304,63 @@ public class RentalService {
     }
 
     /**
+     * Mark a bike as lost in a rental.
+     * Sets item status to LOST, stores lost reason, sets bike status to OOO,
+     * and recalculates rental status.
+     *
+     * @param rentalId The rental ID
+     * @param rentalItemId The rental item ID
+     * @param reason Optional reason for marking as lost
+     * @return Response with updated item and rental status
+     * @throws NotFoundException if rental or item not found
+     * @throws IllegalStateException if item is not in RENTED status
+     */
+    @Transactional
+    public MarkLostResponse markLost(Long rentalId, Long rentalItemId, String reason) {
+        Long hotelId = hotelContext.getCurrentHotelId();
+
+        Rental rental = rentalRepository.findByRentalIdAndHotelId(rentalId, hotelId)
+                .orElseThrow(() -> new NotFoundException("Rental not found: " + rentalId));
+
+        RentalItem item = rental.getItems().stream()
+                .filter(i -> i.getRentalItemId().equals(rentalItemId))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Rental item not found: " + rentalItemId));
+
+        if (item.getStatus() != RentalItemStatus.RENTED) {
+            throw new IllegalStateException("Item is not currently rented");
+        }
+
+        // Get bike info
+        Bike bike = bikeRepository.findById(item.getBikeId())
+                .orElseThrow(() -> new NotFoundException("Bike not found: " + item.getBikeId()));
+
+        // Mark the item as lost
+        item.setStatus(RentalItemStatus.LOST);
+        item.setLostReason(reason);
+        rentalItemRepository.save(item);
+
+        // Set bike status to OOO (out of order - lost bikes should not be available)
+        bike.setStatus(Bike.BikeStatus.OOO);
+        bike.setOooNote("Marked lost from rental #" + rentalId + (reason != null ? ": " + reason : ""));
+        bike.setOooSince(Instant.now());
+        bikeRepository.save(bike);
+
+        // Recalculate rental status
+        boolean rentalClosed = recalculateRentalStatus(rental);
+
+        return new MarkLostResponse(
+                item.getRentalItemId(),
+                bike.getBikeId(),
+                bike.getBikeNumber(),
+                item.getStatus(),
+                item.getLostReason(),
+                rental.getStatus(),
+                rentalClosed
+        );
+    }
+
+    /**
      * Return selected bikes from a rental.
      *
      * @param rentalId The rental ID
@@ -437,8 +497,11 @@ public class RentalService {
     }
 
     /**
-     * Recalculate rental status based on item statuses.
-     * If all items are RETURNED or LOST, set rental to CLOSED and set returnAt.
+     * Recalculate rental status based on item statuses and due date.
+     * Status derivation logic:
+     * - If all items RETURNED/LOST → CLOSED
+     * - Else if any RENTED and now > due_at + grace → OVERDUE
+     * - Else → ACTIVE
      *
      * @param rental The rental to recalculate
      * @return true if rental was closed, false otherwise
@@ -448,11 +511,30 @@ public class RentalService {
                 .allMatch(item -> item.getStatus() == RentalItemStatus.RETURNED 
                                || item.getStatus() == RentalItemStatus.LOST);
 
-        if (allReturned && rental.getStatus() != RentalStatus.CLOSED) {
-            rental.setStatus(RentalStatus.CLOSED);
-            rental.setReturnAt(Instant.now());
-            rentalRepository.save(rental);
-            return true;
+        if (allReturned) {
+            if (rental.getStatus() != RentalStatus.CLOSED) {
+                rental.setStatus(RentalStatus.CLOSED);
+                rental.setReturnAt(Instant.now());
+                rentalRepository.save(rental);
+                return true;
+            }
+            return false;
+        }
+
+        // Check for overdue - any items still RENTED past due_at + grace
+        boolean hasRentedItems = rental.getItems().stream()
+                .anyMatch(item -> item.getStatus() == RentalItemStatus.RENTED);
+
+        if (hasRentedItems) {
+            int graceMinutes = hotelSettingsService.getGraceMinutes(rental.getHotelId());
+            Instant overdueThreshold = rental.getDueAt().plusSeconds(graceMinutes * 60L);
+            boolean isOverdue = Instant.now().isAfter(overdueThreshold);
+
+            RentalStatus newStatus = isOverdue ? RentalStatus.OVERDUE : RentalStatus.ACTIVE;
+            if (rental.getStatus() != newStatus) {
+                rental.setStatus(newStatus);
+                rentalRepository.save(rental);
+            }
         }
 
         return false;

@@ -4,7 +4,7 @@
  */
 
 import { apiGet, apiPost, apiUrl, getToken } from '@/lib/api'
-import type { CreateRentalRequest, Rental, RentalDetail, RentalItem, ReturnBikeResponse, ReturnAllResponse } from '../types'
+import type { CreateRentalRequest, Rental, RentalDetail, RentalItem, ReturnBikeResponse, ReturnAllResponse, MarkLostResponse } from '../types'
 
 /**
  * Error response for unavailable bikes (409 Conflict)
@@ -214,4 +214,19 @@ export async function createRentalWithDetails(
     }
     throw new Error('Failed to create rental')
   }
+}
+
+/**
+ * Mark a bike as lost in a rental
+ * Sets item status to LOST, bike status to OOO, recalculates rental status
+ */
+export async function markBikeLost(
+  rentalId: number,
+  rentalItemId: number,
+  reason?: string
+): Promise<MarkLostResponse> {
+  return apiPost<MarkLostResponse>(
+    `/rentals/${rentalId}/items/${rentalItemId}/lost`,
+    reason ? { reason } : {}
+  )
 }
