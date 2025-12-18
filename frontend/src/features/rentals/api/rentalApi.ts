@@ -4,7 +4,7 @@
  */
 
 import { apiGet, apiPost, apiUrl, getToken } from '@/lib/api'
-import type { CreateRentalRequest, Rental, RentalDetail } from '../types'
+import type { CreateRentalRequest, Rental, RentalDetail, ReturnBikeResponse, ReturnAllResponse } from '../types'
 
 /**
  * Error response for unavailable bikes (409 Conflict)
@@ -77,6 +77,34 @@ export async function fetchSignatureBlob(rentalId: number): Promise<string> {
   
   const blob = await response.blob()
   return URL.createObjectURL(blob)
+}
+
+/**
+ * Return a single bike from a rental
+ */
+export async function returnBike(rentalId: number, rentalItemId: number): Promise<ReturnBikeResponse> {
+  return apiPost<ReturnBikeResponse>(`/rentals/${rentalId}/items/${rentalItemId}/return`)
+}
+
+/**
+ * Undo a bike return (within undo time window)
+ */
+export async function undoReturnBike(rentalId: number, rentalItemId: number): Promise<ReturnBikeResponse> {
+  return apiPost<ReturnBikeResponse>(`/rentals/${rentalId}/items/${rentalItemId}/undo-return`)
+}
+
+/**
+ * Return selected bikes from a rental
+ */
+export async function returnSelected(rentalId: number, rentalItemIds: number[]): Promise<ReturnAllResponse> {
+  return apiPost<ReturnAllResponse>(`/rentals/${rentalId}/return-selected`, { rentalItemIds })
+}
+
+/**
+ * Return all remaining rented bikes from a rental
+ */
+export async function returnAll(rentalId: number): Promise<ReturnAllResponse> {
+  return apiPost<ReturnAllResponse>(`/rentals/${rentalId}/return-all`)
 }
 
 /**
