@@ -65,6 +65,12 @@ export async function fetchSignatureBlob(rentalId: number): Promise<string> {
     },
   })
   
+  if (response.status === 401) {
+    localStorage.removeItem('auth_token')
+    window.location.href = '/login'
+    throw new Error('Unauthorized')
+  }
+  
   if (!response.ok) {
     throw new Error('Failed to fetch signature')
   }
