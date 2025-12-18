@@ -14,6 +14,7 @@ export interface BikeItemRowProps {
   onToggleSelect: (itemId: number) => void
   onReturn: (item: RentalItem) => void
   onMarkLost: (item: RentalItem) => void
+  onUndoReturn?: (item: RentalItem) => void
 }
 
 function getItemStatusBadgeVariant(status: RentalItemStatus): 'success' | 'info' | 'warning' | 'error' {
@@ -48,7 +49,10 @@ export function BikeItemRow({
   onToggleSelect,
   onReturn,
   onMarkLost,
+  onUndoReturn,
 }: BikeItemRowProps) {
+  // Show undo button for any RETURNED bike (always available while rental is active)
+  const canUndoReturn = item.status === 'RETURNED' && onUndoReturn
   return (
     <tr className="hover:bg-slate-50">
       {/* Checkbox */}
@@ -134,6 +138,17 @@ export function BikeItemRow({
                 Mark Lost
               </button>
             </div>
+          ) : canUndoReturn ? (
+            <button
+              onClick={() => onUndoReturn(item)}
+              disabled={isLoading}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 shadow-sm transition-colors hover:bg-amber-100 disabled:opacity-50"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              </svg>
+              Undo Return
+            </button>
           ) : (
             <span className="text-sm text-slate-400">—</span>
           )}

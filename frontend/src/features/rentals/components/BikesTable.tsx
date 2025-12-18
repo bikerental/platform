@@ -16,6 +16,7 @@ export interface BikesTableProps {
   onToggleSelect: (itemId: number) => void
   onReturn: (item: RentalItem) => void
   onMarkLost: (item: RentalItem) => void
+  onUndoReturn?: (item: RentalItem) => void
 }
 
 export function BikesTable({
@@ -29,6 +30,7 @@ export function BikesTable({
   onToggleSelect,
   onReturn,
   onMarkLost,
+  onUndoReturn,
 }: BikesTableProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200">
@@ -76,6 +78,7 @@ export function BikesTable({
               onToggleSelect={onToggleSelect}
               onReturn={onReturn}
               onMarkLost={onMarkLost}
+              onUndoReturn={onUndoReturn}
             />
           ))}
         </tbody>
