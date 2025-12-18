@@ -17,7 +17,7 @@ export interface UseUndoTimerResult<T> {
   isActive: boolean
 }
 
-const DEFAULT_UNDO_DURATION_MS = 30000 // 30 seconds
+const DEFAULT_UNDO_DURATION_MS = 180000 // 3 minutes
 
 export function useUndoTimer<T>(): UseUndoTimerResult<T> {
   const [undoState, setUndoState] = useState<UndoState<T> | null>(null)
@@ -63,4 +63,3 @@ export function useUndoTimer<T>(): UseUndoTimerResult<T> {
     isActive: undoState !== null && timeLeft > 0,
   }
 }
-

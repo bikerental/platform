@@ -2,9 +2,11 @@
  * RentalDetailPage - Displays detailed rental information
  */
 
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/ui/Badge'
 import { useRentalDetail } from '../hooks/useRentalDetail'
+import { AddBikeDialog } from '../components/AddBikeDialog'
 import { RentalBikesList } from '../components/RentalBikesList'
 import { RentalInfoCards } from '../components/RentalInfoCards'
 import { SignaturePreview } from '../components/SignaturePreview'
@@ -30,6 +32,7 @@ export function RentalDetailPage() {
   const navigate = useNavigate()
   const rentalId = id ? parseInt(id, 10) : null
   const { rental, signatureUrl, isLoading, error, refresh } = useRentalDetail(rentalId)
+  const [isAddBikeDialogOpen, setIsAddBikeDialogOpen] = useState(false)
 
   const handleViewContract = () => {
     if (!rentalId) return
@@ -124,8 +127,19 @@ export function RentalDetailPage() {
 
       {/* Bikes List */}
       <div className="rounded-xl border border-slate-200 bg-white">
-        <div className="border-b border-slate-200 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
           <h2 className="text-lg font-semibold text-slate-900">Bikes</h2>
+          {rental.status !== 'CLOSED' && (
+            <button
+              onClick={() => setIsAddBikeDialogOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Bike
+            </button>
+          )}
         </div>
         <div className="p-6">
           <RentalBikesList rentalId={rental.rentalId} items={rental.items} rentalStatus={rental.status} onRefresh={refresh} />
@@ -133,6 +147,14 @@ export function RentalDetailPage() {
       </div>
 
       <SignaturePreview signatureUrl={signatureUrl} />
+
+      {/* Add Bike Dialog */}
+      <AddBikeDialog
+        isOpen={isAddBikeDialogOpen}
+        rentalId={rental.rentalId}
+        onClose={() => setIsAddBikeDialogOpen(false)}
+        onSuccess={refresh}
+      />
     </div>
   )
 }
