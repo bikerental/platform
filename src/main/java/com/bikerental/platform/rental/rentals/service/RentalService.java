@@ -516,5 +516,67 @@ public class RentalService {
                 false
         );
     }
+
+    /**
+     * Add a bike to an existing rental.
+     * Only allowed for ACTIVE or OVERDUE rentals.
+     *
+     * @param rentalId The rental ID
+     * @param bikeNumber The bike number to add
+     * @return The newly created rental item detail
+     * @throws NotFoundException if rental or bike not found
+     * @throws IllegalStateException if rental is CLOSED
+     * @throws BikeUnavailableException if bike is not available
+     */
+    @Transactional
+    public RentalItemDetailResponse addBikeToRental(Long rentalId, String bikeNumber) {
+        Long hotelId = hotelContext.getCurrentHotelId();
+
+        // Find and validate rental
+        Rental rental = rentalRepository.findByRentalIdAndHotelId(rentalId, hotelId)
+                .orElseThrow(() -> new NotFoundException("Rental not found: " + rentalId));
+
+        if (rental.getStatus() == RentalStatus.CLOSED) {
+            throw new IllegalStateException("Cannot add bikes to a closed rental");
+        }
+
+        // Check if bike is already in this rental
+        List<Long> existingBikeIds = rental.getItems().stream()
+                .map(RentalItem::getBikeId)
+                .collect(Collectors.toList());
+        
+        Map<Long, Bike> existingBikeMap = bikeRepository.findAllById(existingBikeIds).stream()
+                .collect(Collectors.toMap(Bike::getBikeId, Function.identity()));
+        
+        boolean alreadyInRental = existingBikeMap.values().stream()
+                .anyMatch(b -> b.getBikeNumber().equals(bikeNumber));
+        
+        if (alreadyInRental) {
+            throw new IllegalArgumentException("Bike " + bikeNumber + " is already in this rental");
+        }
+
+        // Validate bike exists and is available (reuse existing validation logic)
+        List<Bike> bikes = validateAndCollectBikes(hotelId, List.of(bikeNumber));
+        Bike bike = bikes.get(0);
+
+        // Create new rental item
+        RentalItem newItem = new RentalItem(rental, bike.getBikeId());
+        rental.addItem(newItem);
+        rentalItemRepository.save(newItem);
+
+        // Update bike status to RENTED
+        bike.setStatus(Bike.BikeStatus.RENTED);
+        bikeRepository.save(bike);
+
+        return new RentalItemDetailResponse(
+                newItem.getRentalItemId(),
+                bike.getBikeId(),
+                bike.getBikeNumber(),
+                bike.getBikeType(),
+                newItem.getStatus(),
+                null,
+                null
+        );
+    }
 }
 

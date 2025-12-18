@@ -1,7 +1,9 @@
 package com.bikerental.platform.rental.rentals.controller;
 
+import com.bikerental.platform.rental.rentals.dto.AddBikeRequest;
 import com.bikerental.platform.rental.rentals.dto.CreateRentalRequest;
 import com.bikerental.platform.rental.rentals.dto.RentalDetailResponse;
+import com.bikerental.platform.rental.rentals.dto.RentalItemDetailResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalResponse;
 import com.bikerental.platform.rental.rentals.dto.ReturnAllResponse;
 import com.bikerental.platform.rental.rentals.dto.ReturnBikeResponse;
@@ -141,6 +143,22 @@ public class RentalController {
     public ResponseEntity<ReturnAllResponse> returnAll(@PathVariable Long rentalId) {
         ReturnAllResponse response = rentalService.returnAll(rentalId);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Add a bike to an existing rental.
+     * Only allowed for ACTIVE or OVERDUE rentals.
+     *
+     * @param rentalId The rental ID
+     * @param request The request containing the bike number to add
+     * @return The newly created rental item (201 Created)
+     */
+    @PostMapping("/{rentalId}/add-bike")
+    public ResponseEntity<RentalItemDetailResponse> addBike(
+            @PathVariable Long rentalId,
+            @Valid @RequestBody AddBikeRequest request) {
+        RentalItemDetailResponse response = rentalService.addBikeToRental(rentalId, request.getBikeNumber());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
 

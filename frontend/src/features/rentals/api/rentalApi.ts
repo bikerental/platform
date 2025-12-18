@@ -4,7 +4,7 @@
  */
 
 import { apiGet, apiPost, apiUrl, getToken } from '@/lib/api'
-import type { CreateRentalRequest, Rental, RentalDetail, ReturnBikeResponse, ReturnAllResponse } from '../types'
+import type { CreateRentalRequest, Rental, RentalDetail, RentalItem, ReturnBikeResponse, ReturnAllResponse } from '../types'
 
 /**
  * Error response for unavailable bikes (409 Conflict)
@@ -87,7 +87,7 @@ export async function returnBike(rentalId: number, rentalItemId: number): Promis
 }
 
 /**
- * Undo a bike return (within undo time window)
+ * Undo a bike return (always available for active rentals)
  */
 export async function undoReturnBike(rentalId: number, rentalItemId: number): Promise<ReturnBikeResponse> {
   return apiPost<ReturnBikeResponse>(`/rentals/${rentalId}/items/${rentalItemId}/undo-return`)
@@ -105,6 +105,65 @@ export async function returnSelected(rentalId: number, rentalItemIds: number[]):
  */
 export async function returnAll(rentalId: number): Promise<ReturnAllResponse> {
   return apiPost<ReturnAllResponse>(`/rentals/${rentalId}/return-all`)
+}
+
+/**
+ * Add a bike to an existing rental
+ * Only allowed for ACTIVE or OVERDUE rentals
+ */
+export async function addBikeToRental(rentalId: number, bikeNumber: string): Promise<RentalItem> {
+  return apiPost<RentalItem>(`/rentals/${rentalId}/add-bike`, { bikeNumber })
+}
+
+/**
+ * Add a bike to an existing rental with enhanced error handling for 409 responses
+ * Returns either the rental item or detailed unavailable bike info
+ */
+export async function addBikeToRentalWithDetails(
+  rentalId: number,
+  bikeNumber: string
+): Promise<{ success: true; item: RentalItem } | { success: false; unavailableBikes: UnavailableBike[] }> {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/rentals/${rentalId}/add-bike`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
+        },
+        body: JSON.stringify({ bikeNumber }),
+      }
+    )
+
+    if (response.ok) {
+      const item = await response.json()
+      return { success: true, item }
+    }
+
+    if (response.status === 409) {
+      const errorData: BikeUnavailableError = await response.json()
+      return {
+        success: false,
+        unavailableBikes: errorData.details?.unavailableBikes || [],
+      }
+    }
+
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token')
+      window.location.href = '/login'
+      throw new Error('Unauthorized')
+    }
+
+    // Handle other errors
+    const errorData = await response.json().catch(() => ({ message: 'An error occurred' }))
+    throw new Error(errorData.message)
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Failed to add bike to rental')
+  }
 }
 
 /**

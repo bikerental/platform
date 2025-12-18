@@ -1,18 +1,16 @@
 /**
  * RentalBikesList - Displays bikes in a rental with return functionality
- * Orchestrates multi-select, return operations, and undo
+ * Orchestrates multi-select, return operations, and undo (always available for returned bikes)
  */
 
 import { useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Toast } from '@/components/ui/Toast'
 import { useToast } from '@/lib/hooks/useToast'
-import { useUndoTimer } from '@/lib/hooks/useUndoTimer'
 import { returnBike, undoReturnBike, returnSelected, returnAll } from '../api/rentalApi'
 import { BikesActionBar } from './BikesActionBar'
 import { BikesTable } from './BikesTable'
 import { ReturnConfirmContent } from './ReturnConfirmContent'
-import { UndoBanner } from './UndoBanner'
 import type { RentalItem, RentalStatus } from '../types'
 
 export interface RentalBikesListProps {
@@ -20,11 +18,6 @@ export interface RentalBikesListProps {
   items: RentalItem[]
   rentalStatus: RentalStatus
   onRefresh: () => void
-}
-
-interface UndoData {
-  rentalItemId: number
-  bikeNumber: string
 }
 
 type ConfirmDialogState = {
@@ -40,7 +33,6 @@ export function RentalBikesList({ rentalId, items, rentalStatus, onRefresh }: Re
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>(null)
 
   const { toast, showToast, hideToast } = useToast()
-  const { undoState, timeLeft, startUndo, clearUndo, isActive: undoActive } = useUndoTimer<UndoData>()
 
   const rentedItems = items.filter(item => item.status === 'RENTED')
   const isClosed = rentalStatus === 'CLOSED'
@@ -53,7 +45,6 @@ export function RentalBikesList({ rentalId, items, rentalStatus, onRefresh }: Re
     setError(null)
     try {
       await returnBike(rentalId, item.rentalItemId)
-      startUndo({ rentalItemId: item.rentalItemId, bikeNumber: item.bikeNumber })
       showToast(`Bike ${item.bikeNumber} returned`, 'success')
       onRefresh()
     } catch (err) {
@@ -64,14 +55,15 @@ export function RentalBikesList({ rentalId, items, rentalStatus, onRefresh }: Re
     }
   }
 
-  const handleUndo = async () => {
-    if (!undoState) return
+  /**
+   * Undo a bike return - always available for any returned bike while rental is active
+   */
+  const handleUndoReturn = async (item: RentalItem) => {
     setIsLoading(true)
     setError(null)
     try {
-      await undoReturnBike(rentalId, undoState.data.rentalItemId)
-      showToast(`Return of ${undoState.data.bikeNumber} undone`, 'success')
-      clearUndo()
+      await undoReturnBike(rentalId, item.rentalItemId)
+      showToast(`Return of bike ${item.bikeNumber} undone`, 'success')
       onRefresh()
     } catch {
       showToast('Failed to undo return', 'error')
@@ -151,10 +143,6 @@ export function RentalBikesList({ rentalId, items, rentalStatus, onRefresh }: Re
         />
       )}
 
-      {undoActive && undoState && (
-        <UndoBanner bikeNumber={undoState.data.bikeNumber} timeLeftMs={timeLeft} isLoading={isLoading} onUndo={handleUndo} />
-      )}
-
       <BikesTable
         items={items}
         selectedItems={selectedItems}
@@ -166,6 +154,7 @@ export function RentalBikesList({ rentalId, items, rentalStatus, onRefresh }: Re
         onToggleSelect={toggleSelection}
         onReturn={item => setConfirmDialog({ type: 'single', item })}
         onMarkLost={handleMarkLost}
+        onUndoReturn={handleUndoReturn}
       />
 
       <Modal
