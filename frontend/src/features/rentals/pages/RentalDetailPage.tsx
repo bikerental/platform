@@ -262,7 +262,12 @@ export function RentalDetailPage() {
           <h2 className="text-lg font-semibold text-slate-900">Bikes</h2>
         </div>
         <div className="p-6">
-          <RentalBikesList items={rental.items} onRefresh={refresh} />
+          <RentalBikesList 
+            rentalId={rental.rentalId}
+            items={rental.items} 
+            rentalStatus={rental.status}
+            onRefresh={refresh} 
+          />
         </div>
       </div>
 
