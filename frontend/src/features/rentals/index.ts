@@ -16,5 +16,7 @@ export type {
   RentalItemStatus,
   CreateRentalRequest,
   BikeValidationError,
+  ReturnBikeResponse,
+  ReturnAllResponse,
 } from './types'
 

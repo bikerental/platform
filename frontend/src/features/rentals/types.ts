@@ -97,3 +97,27 @@ export type BikeValidationError =
   | { type: 'NOT_AVAILABLE'; bikeNumber: string; status: string }
   | { type: 'DUPLICATE'; bikeNumber: string }
 
+/**
+ * Response from returning a single bike
+ */
+export interface ReturnBikeResponse {
+  rentalItemId: number
+  bikeId: number
+  bikeNumber: string
+  itemStatus: RentalItemStatus
+  returnedAt: string | null
+  rentalStatus: RentalStatus
+  rentalClosed: boolean
+}
+
+/**
+ * Response from returning multiple bikes
+ */
+export interface ReturnAllResponse {
+  rentalId: number
+  rentalStatus: RentalStatus
+  returnAt: string | null
+  returnedCount: number
+  returnedItems: ReturnBikeResponse[]
+}
+

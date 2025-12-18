@@ -3,6 +3,9 @@ package com.bikerental.platform.rental.rentals.controller;
 import com.bikerental.platform.rental.rentals.dto.CreateRentalRequest;
 import com.bikerental.platform.rental.rentals.dto.RentalDetailResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalResponse;
+import com.bikerental.platform.rental.rentals.dto.ReturnAllResponse;
+import com.bikerental.platform.rental.rentals.dto.ReturnBikeResponse;
+import com.bikerental.platform.rental.rentals.dto.ReturnSelectedRequest;
 import com.bikerental.platform.rental.rentals.service.RentalContractService;
 import com.bikerental.platform.rental.rentals.service.RentalService;
 import jakarta.validation.Valid;
@@ -81,6 +84,63 @@ public class RentalController {
     public ResponseEntity<String> getRentalContract(@PathVariable Long rentalId) {
         String contractHtml = rentalContractService.generateContractHtml(rentalId);
         return ResponseEntity.ok(contractHtml);
+    }
+
+    /**
+     * Return a single bike from a rental.
+     *
+     * @param rentalId The rental ID
+     * @param rentalItemId The rental item ID
+     * @return The return confirmation with updated status
+     */
+    @PostMapping("/{rentalId}/items/{rentalItemId}/return")
+    public ResponseEntity<ReturnBikeResponse> returnBike(
+            @PathVariable Long rentalId,
+            @PathVariable Long rentalItemId) {
+        ReturnBikeResponse response = rentalService.returnBike(rentalId, rentalItemId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Undo a bike return (within undo time window).
+     *
+     * @param rentalId The rental ID
+     * @param rentalItemId The rental item ID
+     * @return The undo confirmation with updated status
+     */
+    @PostMapping("/{rentalId}/items/{rentalItemId}/undo-return")
+    public ResponseEntity<ReturnBikeResponse> undoReturn(
+            @PathVariable Long rentalId,
+            @PathVariable Long rentalItemId) {
+        ReturnBikeResponse response = rentalService.undoReturn(rentalId, rentalItemId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Return selected bikes from a rental.
+     *
+     * @param rentalId The rental ID
+     * @param request The request containing rental item IDs to return
+     * @return The return confirmation with all returned items
+     */
+    @PostMapping("/{rentalId}/return-selected")
+    public ResponseEntity<ReturnAllResponse> returnSelected(
+            @PathVariable Long rentalId,
+            @Valid @RequestBody ReturnSelectedRequest request) {
+        ReturnAllResponse response = rentalService.returnSelected(rentalId, request.getRentalItemIds());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Return all remaining rented bikes from a rental.
+     *
+     * @param rentalId The rental ID
+     * @return The return confirmation with all returned items
+     */
+    @PostMapping("/{rentalId}/return-all")
+    public ResponseEntity<ReturnAllResponse> returnAll(@PathVariable Long rentalId) {
+        ReturnAllResponse response = rentalService.returnAll(rentalId);
+        return ResponseEntity.ok(response);
     }
 }
 

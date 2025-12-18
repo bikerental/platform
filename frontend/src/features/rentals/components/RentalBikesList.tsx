@@ -1,178 +1,188 @@
 /**
- * RentalBikesList - Displays bikes in a rental with status-specific UI
- * Shows return/mark lost buttons for rented items, timestamps for returned, reason for lost
+ * RentalBikesList - Displays bikes in a rental with return functionality
+ * Orchestrates multi-select, return operations, and undo
  */
 
-import { Badge } from '@/components/ui/Badge'
-import type { RentalItem, RentalItemStatus } from '../types'
+import { useState } from 'react'
+import { Modal } from '@/components/ui/Modal'
+import { Toast } from '@/components/ui/Toast'
+import { useToast } from '@/lib/hooks/useToast'
+import { useUndoTimer } from '@/lib/hooks/useUndoTimer'
+import { returnBike, undoReturnBike, returnSelected, returnAll } from '../api/rentalApi'
+import { BikesActionBar } from './BikesActionBar'
+import { BikesTable } from './BikesTable'
+import { ReturnConfirmContent } from './ReturnConfirmContent'
+import { UndoBanner } from './UndoBanner'
+import type { RentalItem, RentalStatus } from '../types'
 
 export interface RentalBikesListProps {
+  rentalId: number
   items: RentalItem[]
+  rentalStatus: RentalStatus
   onRefresh: () => void
 }
 
-/**
- * Get badge variant based on item status
- */
-function getItemStatusBadgeVariant(status: RentalItemStatus): 'success' | 'info' | 'warning' | 'error' {
-  switch (status) {
-    case 'RENTED':
-      return 'info'
-    case 'RETURNED':
-      return 'success'
-    case 'LOST':
-      return 'error'
-    default:
-      return 'info'
+interface UndoData {
+  rentalItemId: number
+  bikeNumber: string
+}
+
+type ConfirmDialogState = {
+  type: 'single' | 'selected' | 'all'
+  item?: RentalItem
+  items?: RentalItem[]
+} | null
+
+export function RentalBikesList({ rentalId, items, rentalStatus, onRefresh }: RentalBikesListProps) {
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>(null)
+
+  const { toast, showToast, hideToast } = useToast()
+  const { undoState, timeLeft, startUndo, clearUndo, isActive: undoActive } = useUndoTimer<UndoData>()
+
+  const rentedItems = items.filter(item => item.status === 'RENTED')
+  const isClosed = rentalStatus === 'CLOSED'
+  const showCheckbox = !isClosed && rentedItems.length > 0
+  const selectedRentedItems = items.filter(i => selectedItems.has(i.rentalItemId) && i.status === 'RENTED')
+
+  const handleReturnSingle = async (item: RentalItem) => {
+    setConfirmDialog(null)
+    setIsLoading(true)
+    setError(null)
+    try {
+      await returnBike(rentalId, item.rentalItemId)
+      startUndo({ rentalItemId: item.rentalItemId, bikeNumber: item.bikeNumber })
+      showToast(`Bike ${item.bikeNumber} returned`, 'success')
+      onRefresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to return bike')
+      showToast('Failed to return bike', 'error')
+    } finally {
+      setIsLoading(false)
+    }
   }
-}
 
-/**
- * Format a timestamp for display
- */
-function formatReturnedAt(isoString: string): string {
-  const date = new Date(isoString)
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-}
+  const handleUndo = async () => {
+    if (!undoState) return
+    setIsLoading(true)
+    setError(null)
+    try {
+      await undoReturnBike(rentalId, undoState.data.rentalItemId)
+      showToast(`Return of ${undoState.data.bikeNumber} undone`, 'success')
+      clearUndo()
+      onRefresh()
+    } catch {
+      showToast('Failed to undo return', 'error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-export function RentalBikesList({ items, onRefresh: _onRefresh }: RentalBikesListProps) {
-  // Placeholder handlers - these would connect to actual API endpoints when implemented
-  // _onRefresh will be used when return/mark lost APIs are implemented
-  const handleReturn = (item: RentalItem) => {
-    // TODO: Implement return bike API call (Phase 9) - then call _onRefresh()
-    console.log('Return bike:', item.bikeNumber)
-    alert(`Return bike functionality coming soon for bike ${item.bikeNumber}`)
+  const handleReturnSelected = async () => {
+    setConfirmDialog(null)
+    setIsLoading(true)
+    setError(null)
+    try {
+      const result = await returnSelected(rentalId, Array.from(selectedItems))
+      setSelectedItems(new Set())
+      showToast(`${result.returnedCount} bike(s) returned`, 'success')
+      onRefresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to return bikes')
+      showToast('Failed to return bikes', 'error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleReturnAll = async () => {
+    setConfirmDialog(null)
+    setIsLoading(true)
+    setError(null)
+    try {
+      const result = await returnAll(rentalId)
+      showToast(`All ${result.returnedCount} bike(s) returned. Rental closed.`, 'success')
+      onRefresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to return bikes')
+      showToast('Failed to return bikes', 'error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const toggleSelection = (itemId: number) => {
+    const newSelection = new Set(selectedItems)
+    newSelection.has(itemId) ? newSelection.delete(itemId) : newSelection.add(itemId)
+    setSelectedItems(newSelection)
+  }
+
+  const toggleAll = () => {
+    setSelectedItems(selectedItems.size === rentedItems.length ? new Set() : new Set(rentedItems.map(i => i.rentalItemId)))
   }
 
   const handleMarkLost = (item: RentalItem) => {
-    // TODO: Implement mark lost API call (Phase 9) - then call _onRefresh()
-    console.log('Mark lost:', item.bikeNumber)
-    alert(`Mark lost functionality coming soon for bike ${item.bikeNumber}`)
+    alert(`Mark lost functionality coming in Phase 10 for bike ${item.bikeNumber}`)
+  }
+
+  const handleConfirm = () => {
+    if (confirmDialog?.type === 'single' && confirmDialog.item) handleReturnSingle(confirmDialog.item)
+    else if (confirmDialog?.type === 'selected') handleReturnSelected()
+    else if (confirmDialog?.type === 'all') handleReturnAll()
   }
 
   if (items.length === 0) {
-    return (
-      <div className="py-8 text-center text-slate-500">
-        No bikes in this rental
-      </div>
-    )
+    return <div className="py-8 text-center text-slate-500">No bikes in this rental</div>
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200">
-      <table className="min-w-full divide-y divide-slate-200">
-        <thead className="bg-slate-50">
-          <tr>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Bike
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Type
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Status
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Details
-            </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
-          {items.map((item) => (
-            <tr key={item.rentalItemId} className="hover:bg-slate-50">
-              {/* Bike Number */}
-              <td className="whitespace-nowrap px-4 py-4">
-                <span className="font-mono text-sm font-semibold text-slate-900">
-                  {item.bikeNumber}
-                </span>
-              </td>
+    <div className="space-y-4">
+      {error && <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</div>}
 
-              {/* Bike Type */}
-              <td className="whitespace-nowrap px-4 py-4">
-                <span className="text-sm text-slate-600">
-                  {item.bikeType || '-'}
-                </span>
-              </td>
+      {!isClosed && (
+        <BikesActionBar
+          selectedCount={selectedItems.size}
+          rentedCount={rentedItems.length}
+          isLoading={isLoading}
+          onReturnSelected={() => setConfirmDialog({ type: 'selected', items: selectedRentedItems })}
+          onReturnAll={() => setConfirmDialog({ type: 'all', items: rentedItems })}
+        />
+      )}
 
-              {/* Status Badge */}
-              <td className="whitespace-nowrap px-4 py-4">
-                <Badge variant={getItemStatusBadgeVariant(item.status)}>
-                  {item.status}
-                </Badge>
-              </td>
+      {undoActive && undoState && (
+        <UndoBanner bikeNumber={undoState.data.bikeNumber} timeLeftMs={timeLeft} isLoading={isLoading} onUndo={handleUndo} />
+      )}
 
-              {/* Status Details */}
-              <td className="px-4 py-4">
-                {item.status === 'RETURNED' && item.returnedAt && (
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <svg className="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Returned {formatReturnedAt(item.returnedAt)}</span>
-                  </div>
-                )}
-                
-                {item.status === 'LOST' && (
-                  <div className="flex items-start gap-2 text-sm">
-                    <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <div>
-                      <span className="font-medium text-rose-700">Marked Lost</span>
-                      {item.lostReason && (
-                        <p className="mt-0.5 text-slate-600">{item.lostReason}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {item.status === 'RENTED' && (
-                  <span className="text-sm text-slate-500">Currently out</span>
-                )}
-              </td>
+      <BikesTable
+        items={items}
+        selectedItems={selectedItems}
+        rentedItems={rentedItems}
+        showCheckbox={showCheckbox}
+        showActions={!isClosed}
+        isLoading={isLoading}
+        onToggleAll={toggleAll}
+        onToggleSelect={toggleSelection}
+        onReturn={item => setConfirmDialog({ type: 'single', item })}
+        onMarkLost={handleMarkLost}
+      />
 
-              {/* Actions */}
-              <td className="whitespace-nowrap px-4 py-4 text-right">
-                {item.status === 'RENTED' && (
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => handleReturn(item)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
-                    >
-                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                      Return
-                    </button>
-                    <button
-                      onClick={() => handleMarkLost(item)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition-colors hover:bg-rose-50"
-                    >
-                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                      Mark Lost
-                    </button>
-                  </div>
-                )}
-                
-                {item.status !== 'RENTED' && (
-                  <span className="text-sm text-slate-400">—</span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Modal
+        isOpen={confirmDialog !== null}
+        onClose={() => setConfirmDialog(null)}
+        title={confirmDialog?.type === 'single' ? 'Return Bike' : confirmDialog?.type === 'selected' ? 'Return Selected Bikes' : 'Return All Bikes'}
+        footer={
+          <>
+            <button onClick={() => setConfirmDialog(null)} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button onClick={handleConfirm} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Confirm Return</button>
+          </>
+        }
+      >
+        {confirmDialog && <ReturnConfirmContent type={confirmDialog.type} item={confirmDialog.item} items={confirmDialog.items} />}
+      </Modal>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
     </div>
   )
 }
-

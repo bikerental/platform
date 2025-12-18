@@ -189,29 +189,29 @@
 ## Phase 9: Returns (Single, Multi, All)
 
 ### Backend
-- [ ] **9.1** Implement `RentalService.returnBike(rentalId, rentalItemId)`:
-  - [ ] Set item status RETURNED, returned_at = now
-  - [ ] Set bike status AVAILABLE (unless OOO)
-  - [ ] Recalc rental status (CLOSED if all returned/lost)
-  - [ ] Set rental.return_at if CLOSED
-- [ ] **9.2** Create `POST /api/rentals/{rentalId}/items/{rentalItemId}/return`
-- [ ] **9.3** Implement `RentalService.returnSelected(rentalId, rentalItemIds[])`:
-  - [ ] Apply return logic to each item
-  - [ ] Recalc rental status after batch
-- [ ] **9.4** Create `POST /api/rentals/{rentalId}/return-selected`
-- [ ] **9.5** Implement `RentalService.returnAll(rentalId)`:
-  - [ ] Return all RENTED items
-  - [ ] Set rental CLOSED, return_at = now
-- [ ] **9.6** Create `POST /api/rentals/{rentalId}/return-all`
+- [x] **9.1** Implement `RentalService.returnBike(rentalId, rentalItemId)`:
+  - [x] Set item status RETURNED, returned_at = now
+  - [x] Set bike status AVAILABLE (unless OOO)
+  - [x] Recalc rental status (CLOSED if all returned/lost)
+  - [x] Set rental.return_at if CLOSED
+- [x] **9.2** Create `POST /api/rentals/{rentalId}/items/{rentalItemId}/return`
+- [x] **9.3** Implement `RentalService.returnSelected(rentalId, rentalItemIds[])`:
+  - [x] Apply return logic to each item
+  - [x] Recalc rental status after batch
+- [x] **9.4** Create `POST /api/rentals/{rentalId}/return-selected`
+- [x] **9.5** Implement `RentalService.returnAll(rentalId)`:
+  - [x] Return all RENTED items
+  - [x] Set rental CLOSED, return_at = now
+- [x] **9.6** Create `POST /api/rentals/{rentalId}/return-all`
 
 ### Frontend
-- [ ] **9.7** Single-bike return: confirmation dialog → call API → update UI → show toast with Undo
-- [ ] **9.8** Implement undo for single-bike return (30 second window)
-- [ ] **9.9** Multi-select: checkboxes on RENTED items; "Return selected" button (enabled when ≥1 selected)
-- [ ] **9.10** Multi-select confirmation dialog listing bike numbers → call API → update UI → show summary toast
-- [ ] **9.11** "Return all remaining bikes" button (visible when rental not CLOSED and ≥1 RENTED)
-- [ ] **9.12** Return-all confirmation dialog listing remaining bikes → call API → update UI → show confirmation message
-- [ ] **9.13** Hide return/lost actions when rental is CLOSED
+- [x] **9.7** Single-bike return: confirmation dialog → call API → update UI → show toast with Undo
+- [x] **9.8** Implement undo for single-bike return (30 second window)
+- [x] **9.9** Multi-select: checkboxes on RENTED items; "Return selected" button (enabled when ≥1 selected)
+- [x] **9.10** Multi-select confirmation dialog listing bike numbers → call API → update UI → show summary toast
+- [x] **9.11** "Return all remaining bikes" button (visible when rental not CLOSED and ≥1 RENTED)
+- [x] **9.12** Return-all confirmation dialog listing remaining bikes → call API → update UI → show confirmation message
+- [x] **9.13** Hide return/lost actions when rental is CLOSED
 
 ---
 
@@ -348,7 +348,7 @@
 | 6. Guest/Create | Complete | Backend: SignatureService, RentalService.createRental, POST /api/rentals with 409 handling. Frontend: GuestModePage with signature pad, T&C, form validation, success/error screens. |
 | 7. Home Overview | Complete | Backend: OverviewService with bike/rental counts and active rentals list, OverviewController with GET /api/overview. Frontend: HomePage with stat cards, active rentals table with search/filter, clickable rows, "New rental" button. Auto-refresh every 30s. |
 | 8. Rental Detail | Complete | Backend: RentalService.getRentalDetail, RentalContractService for HTML contract & signature, GET /api/rentals/{id}, /contract, /signature endpoints. Frontend: RentalDetailPage with info cards, bikes list, signature preview, contract viewer. |
-| 9. Returns | Not started | |
+| 9. Returns | Complete | Backend: returnBike, returnSelected, returnAll methods with rental status recalculation. Undo return support. Frontend: RentalBikesList with multi-select, confirmation dialogs, 30s undo window, toast notifications. Actions hidden when rental is CLOSED. |
 | 10. Mark Lost | Not started | |
 | 11. Overdue | Not started | |
 | 12. Export | Not started | |

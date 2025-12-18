@@ -10,9 +10,13 @@ import com.bikerental.platform.rental.rentals.dto.RentalDetailResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalItemDetailResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalItemResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalResponse;
+import com.bikerental.platform.rental.rentals.dto.ReturnAllResponse;
+import com.bikerental.platform.rental.rentals.dto.ReturnBikeResponse;
 import com.bikerental.platform.rental.rentals.model.Rental;
 import com.bikerental.platform.rental.rentals.model.RentalItem;
+import com.bikerental.platform.rental.rentals.model.RentalItemStatus;
 import com.bikerental.platform.rental.rentals.model.RentalStatus;
+import com.bikerental.platform.rental.rentals.repo.RentalItemRepository;
 import com.bikerental.platform.rental.rentals.repo.RentalRepository;
 import com.bikerental.platform.rental.signature.service.SignatureService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +42,7 @@ import java.util.stream.Collectors;
 public class RentalService {
 
     private final RentalRepository rentalRepository;
+    private final RentalItemRepository rentalItemRepository;
     private final BikeRepository bikeRepository;
     private final SignatureService signatureService;
     private final HotelContext hotelContext;
@@ -235,6 +240,280 @@ public class RentalService {
                 rental.getTncVersion(),
                 rental.getSignatureId(),
                 itemResponses
+        );
+    }
+
+    /**
+     * Return a single bike from a rental.
+     * Sets item status to RETURNED, updates bike status to AVAILABLE (unless OOO),
+     * and recalculates rental status.
+     *
+     * @param rentalId The rental ID
+     * @param rentalItemId The rental item ID
+     * @return Response with updated item and rental status
+     * @throws NotFoundException if rental or item not found
+     * @throws IllegalStateException if item is not in RENTED status
+     */
+    @Transactional
+    public ReturnBikeResponse returnBike(Long rentalId, Long rentalItemId) {
+        Long hotelId = hotelContext.getCurrentHotelId();
+
+        Rental rental = rentalRepository.findByRentalIdAndHotelId(rentalId, hotelId)
+                .orElseThrow(() -> new NotFoundException("Rental not found: " + rentalId));
+
+        RentalItem item = rental.getItems().stream()
+                .filter(i -> i.getRentalItemId().equals(rentalItemId))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Rental item not found: " + rentalItemId));
+
+        if (item.getStatus() != RentalItemStatus.RENTED) {
+            throw new IllegalStateException("Item is not currently rented");
+        }
+
+        // Get bike info for response
+        Bike bike = bikeRepository.findById(item.getBikeId())
+                .orElseThrow(() -> new NotFoundException("Bike not found: " + item.getBikeId()));
+
+        // Return the item
+        Instant returnedAt = Instant.now();
+        item.setStatus(RentalItemStatus.RETURNED);
+        item.setReturnedAt(returnedAt);
+        rentalItemRepository.save(item);
+
+        // Update bike status to AVAILABLE (unless it was marked OOO)
+        if (bike.getStatus() == Bike.BikeStatus.RENTED) {
+            bike.setStatus(Bike.BikeStatus.AVAILABLE);
+            bikeRepository.save(bike);
+        }
+
+        // Recalculate rental status
+        boolean rentalClosed = recalculateRentalStatus(rental);
+
+        return new ReturnBikeResponse(
+                item.getRentalItemId(),
+                bike.getBikeId(),
+                bike.getBikeNumber(),
+                item.getStatus(),
+                returnedAt,
+                rental.getStatus(),
+                rentalClosed
+        );
+    }
+
+    /**
+     * Return selected bikes from a rental.
+     *
+     * @param rentalId The rental ID
+     * @param rentalItemIds List of rental item IDs to return
+     * @return Response with all returned items and rental status
+     */
+    @Transactional
+    public ReturnAllResponse returnSelected(Long rentalId, List<Long> rentalItemIds) {
+        Long hotelId = hotelContext.getCurrentHotelId();
+
+        Rental rental = rentalRepository.findByRentalIdAndHotelId(rentalId, hotelId)
+                .orElseThrow(() -> new NotFoundException("Rental not found: " + rentalId));
+
+        // Fetch all bikes for this rental
+        List<Long> bikeIds = rental.getItems().stream()
+                .map(RentalItem::getBikeId)
+                .collect(Collectors.toList());
+        Map<Long, Bike> bikeMap = bikeRepository.findAllById(bikeIds).stream()
+                .collect(Collectors.toMap(Bike::getBikeId, Function.identity()));
+
+        Instant returnedAt = Instant.now();
+        List<ReturnBikeResponse> returnedItems = new ArrayList<>();
+        Set<Long> itemIdSet = new HashSet<>(rentalItemIds);
+
+        for (RentalItem item : rental.getItems()) {
+            if (itemIdSet.contains(item.getRentalItemId()) && item.getStatus() == RentalItemStatus.RENTED) {
+                // Return this item
+                item.setStatus(RentalItemStatus.RETURNED);
+                item.setReturnedAt(returnedAt);
+                rentalItemRepository.save(item);
+
+                // Update bike status
+                Bike bike = bikeMap.get(item.getBikeId());
+                if (bike != null && bike.getStatus() == Bike.BikeStatus.RENTED) {
+                    bike.setStatus(Bike.BikeStatus.AVAILABLE);
+                    bikeRepository.save(bike);
+                }
+
+                returnedItems.add(new ReturnBikeResponse(
+                        item.getRentalItemId(),
+                        bike != null ? bike.getBikeId() : item.getBikeId(),
+                        bike != null ? bike.getBikeNumber() : "Unknown",
+                        item.getStatus(),
+                        returnedAt,
+                        null, // Will be set after recalculation
+                        false
+                ));
+            }
+        }
+
+        // Recalculate rental status
+        recalculateRentalStatus(rental);
+
+        // Update rental status in responses
+        for (ReturnBikeResponse response : returnedItems) {
+            response.setRentalStatus(rental.getStatus());
+            response.setRentalClosed(rental.getStatus() == RentalStatus.CLOSED);
+        }
+
+        return new ReturnAllResponse(
+                rental.getRentalId(),
+                rental.getStatus(),
+                rental.getReturnAt(),
+                returnedItems.size(),
+                returnedItems
+        );
+    }
+
+    /**
+     * Return all remaining rented bikes from a rental.
+     *
+     * @param rentalId The rental ID
+     * @return Response with all returned items and rental status
+     */
+    @Transactional
+    public ReturnAllResponse returnAll(Long rentalId) {
+        Long hotelId = hotelContext.getCurrentHotelId();
+
+        Rental rental = rentalRepository.findByRentalIdAndHotelId(rentalId, hotelId)
+                .orElseThrow(() -> new NotFoundException("Rental not found: " + rentalId));
+
+        // Fetch all bikes for this rental
+        List<Long> bikeIds = rental.getItems().stream()
+                .map(RentalItem::getBikeId)
+                .collect(Collectors.toList());
+        Map<Long, Bike> bikeMap = bikeRepository.findAllById(bikeIds).stream()
+                .collect(Collectors.toMap(Bike::getBikeId, Function.identity()));
+
+        Instant returnedAt = Instant.now();
+        List<ReturnBikeResponse> returnedItems = new ArrayList<>();
+
+        for (RentalItem item : rental.getItems()) {
+            if (item.getStatus() == RentalItemStatus.RENTED) {
+                // Return this item
+                item.setStatus(RentalItemStatus.RETURNED);
+                item.setReturnedAt(returnedAt);
+                rentalItemRepository.save(item);
+
+                // Update bike status
+                Bike bike = bikeMap.get(item.getBikeId());
+                if (bike != null && bike.getStatus() == Bike.BikeStatus.RENTED) {
+                    bike.setStatus(Bike.BikeStatus.AVAILABLE);
+                    bikeRepository.save(bike);
+                }
+
+                returnedItems.add(new ReturnBikeResponse(
+                        item.getRentalItemId(),
+                        bike != null ? bike.getBikeId() : item.getBikeId(),
+                        bike != null ? bike.getBikeNumber() : "Unknown",
+                        item.getStatus(),
+                        returnedAt,
+                        null,
+                        false
+                ));
+            }
+        }
+
+        // Recalculate rental status (will always be CLOSED after return-all)
+        recalculateRentalStatus(rental);
+
+        // Update rental status in responses
+        for (ReturnBikeResponse response : returnedItems) {
+            response.setRentalStatus(rental.getStatus());
+            response.setRentalClosed(rental.getStatus() == RentalStatus.CLOSED);
+        }
+
+        return new ReturnAllResponse(
+                rental.getRentalId(),
+                rental.getStatus(),
+                rental.getReturnAt(),
+                returnedItems.size(),
+                returnedItems
+        );
+    }
+
+    /**
+     * Recalculate rental status based on item statuses.
+     * If all items are RETURNED or LOST, set rental to CLOSED and set returnAt.
+     *
+     * @param rental The rental to recalculate
+     * @return true if rental was closed, false otherwise
+     */
+    private boolean recalculateRentalStatus(Rental rental) {
+        boolean allReturned = rental.getItems().stream()
+                .allMatch(item -> item.getStatus() == RentalItemStatus.RETURNED 
+                               || item.getStatus() == RentalItemStatus.LOST);
+
+        if (allReturned && rental.getStatus() != RentalStatus.CLOSED) {
+            rental.setStatus(RentalStatus.CLOSED);
+            rental.setReturnAt(Instant.now());
+            rentalRepository.save(rental);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Undo a bike return (for undo functionality within time window).
+     * Sets item status back to RENTED, updates bike status back to RENTED.
+     *
+     * @param rentalId The rental ID
+     * @param rentalItemId The rental item ID
+     * @return Response with updated item and rental status
+     * @throws NotFoundException if rental or item not found
+     * @throws IllegalStateException if item is not in RETURNED status
+     */
+    @Transactional
+    public ReturnBikeResponse undoReturn(Long rentalId, Long rentalItemId) {
+        Long hotelId = hotelContext.getCurrentHotelId();
+
+        Rental rental = rentalRepository.findByRentalIdAndHotelId(rentalId, hotelId)
+                .orElseThrow(() -> new NotFoundException("Rental not found: " + rentalId));
+
+        RentalItem item = rental.getItems().stream()
+                .filter(i -> i.getRentalItemId().equals(rentalItemId))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Rental item not found: " + rentalItemId));
+
+        if (item.getStatus() != RentalItemStatus.RETURNED) {
+            throw new IllegalStateException("Item is not in RETURNED status");
+        }
+
+        // Get bike info
+        Bike bike = bikeRepository.findById(item.getBikeId())
+                .orElseThrow(() -> new NotFoundException("Bike not found: " + item.getBikeId()));
+
+        // Undo the return
+        item.setStatus(RentalItemStatus.RENTED);
+        item.setReturnedAt(null);
+        rentalItemRepository.save(item);
+
+        // Update bike status back to RENTED (unless it's OOO)
+        if (bike.getStatus() == Bike.BikeStatus.AVAILABLE) {
+            bike.setStatus(Bike.BikeStatus.RENTED);
+            bikeRepository.save(bike);
+        }
+
+        // Recalculate rental status (reopen if was closed)
+        if (rental.getStatus() == RentalStatus.CLOSED) {
+            rental.setStatus(RentalStatus.ACTIVE);
+            rental.setReturnAt(null);
+            rentalRepository.save(rental);
+        }
+
+        return new ReturnBikeResponse(
+                item.getRentalItemId(),
+                bike.getBikeId(),
+                bike.getBikeNumber(),
+                item.getStatus(),
+                null,
+                rental.getStatus(),
+                false
         );
     }
 }
