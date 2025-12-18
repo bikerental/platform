@@ -30,6 +30,9 @@ export function useUndoTimer<T>(): UseUndoTimerResult<T> {
       return
     }
 
+    // Set initial time immediately
+    setTimeLeft(Math.max(0, undoState.expiresAt - Date.now()))
+
     const interval = setInterval(() => {
       const remaining = Math.max(0, undoState.expiresAt - Date.now())
       setTimeLeft(remaining)
@@ -43,10 +46,9 @@ export function useUndoTimer<T>(): UseUndoTimerResult<T> {
   }, [undoState])
 
   const startUndo = useCallback((data: T, durationMs = DEFAULT_UNDO_DURATION_MS) => {
-    setUndoState({
-      data,
-      expiresAt: Date.now() + durationMs,
-    })
+    const expiresAt = Date.now() + durationMs
+    setUndoState({ data, expiresAt })
+    setTimeLeft(durationMs) // Set initial timeLeft immediately
   }, [])
 
   const clearUndo = useCallback(() => {
