@@ -4,7 +4,10 @@ import com.bikerental.platform.rental.auth.security.HotelContext;
 import com.bikerental.platform.rental.bike.model.Bike;
 import com.bikerental.platform.rental.bike.repo.BikeRepository;
 import com.bikerental.platform.rental.common.exception.BikeUnavailableException;
+import com.bikerental.platform.rental.common.exception.NotFoundException;
 import com.bikerental.platform.rental.rentals.dto.CreateRentalRequest;
+import com.bikerental.platform.rental.rentals.dto.RentalDetailResponse;
+import com.bikerental.platform.rental.rentals.dto.RentalItemDetailResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalItemResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalResponse;
 import com.bikerental.platform.rental.rentals.model.Rental;
@@ -20,8 +23,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Service for rental operations.
@@ -175,6 +181,59 @@ public class RentalService {
                 rental.getDueAt(),
                 rental.getRoomNumber(),
                 rental.getBedNumber(),
+                itemResponses
+        );
+    }
+
+    /**
+     * Get detailed rental information by ID.
+     * Includes full item details with returnedAt and lostReason.
+     *
+     * @param rentalId The rental ID
+     * @return The detailed rental response
+     * @throws NotFoundException if rental not found or doesn't belong to hotel
+     */
+    @Transactional(readOnly = true)
+    public RentalDetailResponse getRentalDetail(Long rentalId) {
+        Long hotelId = hotelContext.getCurrentHotelId();
+
+        Rental rental = rentalRepository.findByRentalIdAndHotelId(rentalId, hotelId)
+                .orElseThrow(() -> new NotFoundException("Rental not found: " + rentalId));
+
+        // Fetch all bikes for the rental items
+        List<Long> bikeIds = rental.getItems().stream()
+                .map(RentalItem::getBikeId)
+                .collect(Collectors.toList());
+
+        Map<Long, Bike> bikeMap = bikeRepository.findAllById(bikeIds).stream()
+                .collect(Collectors.toMap(Bike::getBikeId, Function.identity()));
+
+        // Convert items to detailed responses
+        List<RentalItemDetailResponse> itemResponses = rental.getItems().stream()
+                .map(item -> {
+                    Bike bike = bikeMap.get(item.getBikeId());
+                    return new RentalItemDetailResponse(
+                            item.getRentalItemId(),
+                            item.getBikeId(),
+                            bike != null ? bike.getBikeNumber() : "Unknown",
+                            bike != null ? bike.getBikeType() : null,
+                            item.getStatus(),
+                            item.getReturnedAt(),
+                            item.getLostReason()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new RentalDetailResponse(
+                rental.getRentalId(),
+                rental.getStatus(),
+                rental.getStartAt(),
+                rental.getDueAt(),
+                rental.getReturnAt(),
+                rental.getRoomNumber(),
+                rental.getBedNumber(),
+                rental.getTncVersion(),
+                rental.getSignatureId(),
                 itemResponses
         );
     }
