@@ -166,23 +166,23 @@
 ## Phase 8: Rental Detail & Contract View
 
 ### Backend
-- [ ] **8.1** Implement `RentalService.getRentalDetail()`:
-  - [ ] Return rental with all items (bike number, type, item status, returned_at, lost_reason)
-  - [ ] Include signature reference/URL
-- [ ] **8.2** Create `GET /api/rentals/{rentalId}` endpoint
-- [ ] **8.3** Implement `GET /api/rentals/{rentalId}/contract`:
-  - [ ] Generate contract document (PDF or HTML) with bike list, room/bed, times, T&C version, embedded signature
-- [ ] **8.4** Implement `GET /api/rentals/{rentalId}/signature` (return signature image)
+- [x] **8.1** Implement `RentalService.getRentalDetail()`:
+- [x] Return rental with all items (bike number, type, item status, returned_at, lost_reason)
+- [x] Include signature reference/URL
+- [x] **8.2** Create `GET /api/rentals/{rentalId}` endpoint
+- [x] **8.3** Implement `GET /api/rentals/{rentalId}/contract`:
+- [x] Generate contract document (PDF or HTML) with bike list, room/bed, times, T&C version, embedded signature
+- [x] **8.4** Implement `GET /api/rentals/{rentalId}/signature` (return signature image)
 
 ### Frontend
-- [ ] **8.5** Create `/rentals/:id` route and RentalDetailPage component
-- [ ] **8.6** Display rental info: id, room/bed, start_at, due_at, status badge
-- [ ] **8.7** Display bikes list with per-item status badge
-- [ ] **8.8** For RENTED items: show "Return bike" and "Mark lost" buttons
-- [ ] **8.9** For RETURNED items: show returned_at timestamp
-- [ ] **8.10** For LOST items: show lost indicator + reason
-- [ ] **8.11** "View contract" button → open contract PDF/HTML (new tab or modal)
-- [ ] **8.12** Signature preview/thumbnail in detail view
+- [x] **8.5** Create `/rentals/:id` route and RentalDetailPage component
+- [x] **8.6** Display rental info: id, room/bed, start_at, due_at, status badge
+- [x] **8.7** Display bikes list with per-item status badge
+- [x] **8.8** For RENTED items: show "Return bike" and "Mark lost" buttons
+- [x] **8.9** For RETURNED items: show returned_at timestamp
+- [x] **8.10** For LOST items: show lost indicator + reason
+- [x] **8.11** "View contract" button → open contract PDF/HTML (new tab or modal)
+- [x] **8.12** Signature preview/thumbnail in detail view
 
 ---
 
@@ -347,7 +347,7 @@
 | 5. New Rental Flow | Complete | Backend endpoint already existed. Frontend: NewRentalPage with bike assignment, validation, error handling. |
 | 6. Guest/Create | Complete | Backend: SignatureService, RentalService.createRental, POST /api/rentals with 409 handling. Frontend: GuestModePage with signature pad, T&C, form validation, success/error screens. |
 | 7. Home Overview | Complete | Backend: OverviewService with bike/rental counts and active rentals list, OverviewController with GET /api/overview. Frontend: HomePage with stat cards, active rentals table with search/filter, clickable rows, "New rental" button. Auto-refresh every 30s. |
-| 8. Rental Detail | Not started | |
+| 8. Rental Detail | Complete | Backend: RentalService.getRentalDetail, RentalContractService for HTML contract & signature, GET /api/rentals/{id}, /contract, /signature endpoints. Frontend: RentalDetailPage with info cards, bikes list, signature preview, contract viewer. |
 | 9. Returns | Not started | |
 | 10. Mark Lost | Not started | |
 | 11. Overdue | Not started | |

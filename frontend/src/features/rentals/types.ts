@@ -48,7 +48,23 @@ export interface RentalItem {
 }
 
 /**
- * Full rental details
+ * Full rental details (from GET /api/rentals/:id)
+ */
+export interface RentalDetail {
+  rentalId: number
+  status: RentalStatus
+  startAt: string
+  dueAt: string
+  returnAt: string | null
+  roomNumber: string
+  bedNumber: string | null
+  tncVersion: string
+  signatureId: number
+  items: RentalItem[]
+}
+
+/**
+ * Rental response from create (subset of RentalDetail)
  */
 export interface Rental {
   rentalId: number

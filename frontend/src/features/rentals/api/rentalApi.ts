@@ -3,8 +3,8 @@
  * Handles all rental-related API calls
  */
 
-import { apiPost } from '@/lib/api'
-import type { CreateRentalRequest, Rental } from '../types'
+import { apiGet, apiPost, apiUrl, getToken } from '@/lib/api'
+import type { CreateRentalRequest, Rental, RentalDetail } from '../types'
 
 /**
  * Error response for unavailable bikes (409 Conflict)
@@ -30,6 +30,53 @@ export interface BikeUnavailableError {
  */
 export async function createRental(request: CreateRentalRequest): Promise<Rental> {
   return apiPost<Rental>('/rentals', request)
+}
+
+/**
+ * Get rental details by ID
+ */
+export async function getRentalDetail(rentalId: number): Promise<RentalDetail> {
+  return apiGet<RentalDetail>(`/rentals/${rentalId}`)
+}
+
+/**
+ * Get the URL for the rental signature image
+ */
+export function getSignatureUrl(rentalId: number): string {
+  return apiUrl(`/rentals/${rentalId}/signature`)
+}
+
+/**
+ * Get the URL for the rental contract HTML
+ */
+export function getContractUrl(rentalId: number): string {
+  return apiUrl(`/rentals/${rentalId}/contract`)
+}
+
+/**
+ * Fetch signature image as blob URL for display
+ * (needed for authenticated image requests)
+ */
+export async function fetchSignatureBlob(rentalId: number): Promise<string> {
+  const token = getToken()
+  const response = await fetch(apiUrl(`/rentals/${rentalId}/signature`), {
+    headers: {
+      Authorization: `Bearer ${token || ''}`,
+    },
+  })
+  
+  if (response.status === 401) {
+    localStorage.removeItem('auth_token')
+    window.location.href = '/login'
+    throw new Error('Unauthorized')
+  }
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch signature')
+  }
+  
+  const blob = await response.blob()
+  return URL.createObjectURL(blob)
 }
 
 /**
@@ -81,4 +128,3 @@ export async function createRentalWithDetails(
     throw new Error('Failed to create rental')
   }
 }
-

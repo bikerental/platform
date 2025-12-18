@@ -31,6 +31,7 @@ import com.bikerental.platform.rental.rentals.dto.RentalItemResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalResponse;
 import com.bikerental.platform.rental.rentals.model.RentalItemStatus;
 import com.bikerental.platform.rental.rentals.model.RentalStatus;
+import com.bikerental.platform.rental.rentals.service.RentalContractService;
 import com.bikerental.platform.rental.rentals.service.RentalService;
 
 @WebMvcTest(RentalController.class)
@@ -42,6 +43,9 @@ class RentalControllerTest {
 
     @MockBean
     private RentalService rentalService;
+
+    @MockBean
+    private RentalContractService rentalContractService;
 
     @MockBean
     private JwtService jwtService;
