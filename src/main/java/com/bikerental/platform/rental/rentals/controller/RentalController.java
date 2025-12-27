@@ -2,6 +2,8 @@ package com.bikerental.platform.rental.rentals.controller;
 
 import com.bikerental.platform.rental.rentals.dto.AddBikeRequest;
 import com.bikerental.platform.rental.rentals.dto.CreateRentalRequest;
+import com.bikerental.platform.rental.rentals.dto.MarkLostRequest;
+import com.bikerental.platform.rental.rentals.dto.MarkLostResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalDetailResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalItemDetailResponse;
 import com.bikerental.platform.rental.rentals.dto.RentalResponse;
@@ -115,6 +117,25 @@ public class RentalController {
             @PathVariable Long rentalId,
             @PathVariable Long rentalItemId) {
         ReturnBikeResponse response = rentalService.undoReturn(rentalId, rentalItemId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Mark a bike as lost in a rental.
+     * Sets item status to LOST, sets bike status to OOO, and recalculates rental status.
+     *
+     * @param rentalId The rental ID
+     * @param rentalItemId The rental item ID
+     * @param request Optional request with lost reason
+     * @return The mark lost confirmation with updated status
+     */
+    @PostMapping("/{rentalId}/items/{rentalItemId}/lost")
+    public ResponseEntity<MarkLostResponse> markLost(
+            @PathVariable Long rentalId,
+            @PathVariable Long rentalItemId,
+            @RequestBody(required = false) MarkLostRequest request) {
+        String reason = request != null ? request.getReason() : null;
+        MarkLostResponse response = rentalService.markLost(rentalId, rentalItemId, reason);
         return ResponseEntity.ok(response);
     }
 

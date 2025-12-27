@@ -2,12 +2,12 @@
  * TermsAndConditions - T&C display with acceptance checkbox
  */
 
-// Default T&C text (would come from settings API in production)
-const DEFAULT_TNC_TEXT = `By signing below, I acknowledge that I have received the bicycle(s) listed above in good condition. I agree to return them by the specified due date and time. I accept responsibility for any damage to or loss of the bicycle(s) during the rental period. I understand that late returns may incur additional charges.
+/// Default T&C text (would come from settings API in production)
+const DEFAULT_TNC_TEXT = `By signing below, I acknowledge that the bicycle is rented for use only by the designated customer and may not be used by any other person.
 
-The rental fee is non-refundable. In case of damage or loss, I agree to pay the full replacement cost of the bicycle(s). I confirm that I am at least 18 years of age and have read and understood these terms and conditions.
+In case of loss, theft, or damage to the bicycle or its key, the hostel will charge the customer the full cost of the missing or damaged items. The replacement cost is 250 DKK for a lost key and 1,250 DKK for a lost bicycle.
 
-I release the hotel and its staff from any liability for injuries sustained while using the bicycles. I agree to follow all traffic laws and safety guidelines while operating the bicycles.`
+The hostel is not liable for any claims related to bodily injury sustained by the customer or any third party, nor for loss or damage to personal belongings. It is the responsibility of the customer and their group to comply with all Danish traffic laws and regulations while using the bicycle.`;
 
 export interface TermsAndConditionsProps {
   accepted: boolean

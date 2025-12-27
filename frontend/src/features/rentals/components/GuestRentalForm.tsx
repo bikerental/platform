@@ -113,7 +113,7 @@ export function GuestRentalForm({
                 type="text"
                 value={bedNumber}
                 onChange={e => onBedNumberChange(e.target.value)}
-                placeholder="e.g. A"
+                placeholder="e.g. 1 & 2"
                 className="w-full rounded-xl border border-slate-300 px-4 py-3 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               />
             </div>

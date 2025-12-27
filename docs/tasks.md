@@ -114,18 +114,18 @@
 ### Backend
 - [x] **6.1** Implement `SignatureService` (store base64 PNG as MEDIUMBLOB, return signature_id)
 - [x] **6.2** Implement `RentalService.createRental()`:
-  - [x] Validate request has ≥1 bike number
-  - [x] Validate all bikes exist, belong to hotel, and are AVAILABLE (not RENTED/OOO)
-  - [x] Store signature
-  - [x] Compute start_at = now (UTC), due_at from returnDateTime
-  - [x] Create Rental (ACTIVE) with room/bed, tnc_version, signature_id
-  - [x] Create RentalItems (RENTED) for each bike
-  - [x] Update each bike status to RENTED
-  - [x] All in single transaction (atomic)
-  - [x] Return created rental
+- [x] Validate request has ≥1 bike number
+- [x] Validate all bikes exist, belong to hotel, and are AVAILABLE (not RENTED/OOO)
+- [x] Store signature
+- [x] Compute start_at = now (UTC), due_at from returnDateTime
+- [x] Create Rental (ACTIVE) with room/bed, tnc_version, signature_id
+- [x] Create RentalItems (RENTED) for each bike
+- [x] Update each bike status to RENTED
+- [x] All in single transaction (atomic)
+- [x] Return created rental
 - [x] **6.3** Create endpoint `POST /api/rentals`
-  - Request: `{ bikeNumbers: string[], roomNumber, bedNumber?, returnDateTime, tncVersion, signatureBase64Png }`
-  - Response 201: rental with id, status, startAt, dueAt, items
+- Request: `{ bikeNumbers: string[], roomNumber, bedNumber?, returnDateTime, tncVersion, signatureBase64Png }`
+- Response 201: rental with id, status, startAt, dueAt, items
 - [x] **6.4** Handle creation errors (409 if any bike unavailable with specific bike numbers in error)
 
 ### Frontend
@@ -147,9 +147,9 @@
 
 ### Backend
 - [x] **7.1** Implement `OverviewService`:
-  - [x] Count bikes by status (AVAILABLE, RENTED, OOO) for hotel
-  - [x] Count rentals by status (ACTIVE, OVERDUE) for hotel
-  - [x] List active/overdue rentals with summary (id, room/bed, dueAt, status, bikesOut, bikesTotal)
+- [x] Count bikes by status (AVAILABLE, RENTED, OOO) for hotel
+- [x] Count rentals by status (ACTIVE, OVERDUE) for hotel
+- [x] List active/overdue rentals with summary (id, room/bed, dueAt, status, bikesOut, bikesTotal)
 - [x] **7.2** Create `OverviewController` with `GET /api/overview`
 
 ### Frontend
@@ -190,18 +190,18 @@
 
 ### Backend
 - [x] **9.1** Implement `RentalService.returnBike(rentalId, rentalItemId)`:
-  - [x] Set item status RETURNED, returned_at = now
-  - [x] Set bike status AVAILABLE (unless OOO)
-  - [x] Recalc rental status (CLOSED if all returned/lost)
-  - [x] Set rental.return_at if CLOSED
+- [x] Set item status RETURNED, returned_at = now
+- [x] Set bike status AVAILABLE (unless OOO)
+- [x] Recalc rental status (CLOSED if all returned/lost)
+- [x] Set rental.return_at if CLOSED
 - [x] **9.2** Create `POST /api/rentals/{rentalId}/items/{rentalItemId}/return`
 - [x] **9.3** Implement `RentalService.returnSelected(rentalId, rentalItemIds[])`:
-  - [x] Apply return logic to each item
-  - [x] Recalc rental status after batch
+- [x] Apply return logic to each item
+- [x] Recalc rental status after batch
 - [x] **9.4** Create `POST /api/rentals/{rentalId}/return-selected`
 - [x] **9.5** Implement `RentalService.returnAll(rentalId)`:
-  - [x] Return all RENTED items
-  - [x] Set rental CLOSED, return_at = now
+- [x] Return all RENTED items
+- [x] Set rental CLOSED, return_at = now
 - [x] **9.6** Create `POST /api/rentals/{rentalId}/return-all`
 
 ### Frontend
@@ -219,9 +219,9 @@
 
 ### Backend
 - [ ] **10.1** Implement `RentalService.markLost(rentalId, rentalItemId, reason)`:
-  - [ ] Set item status LOST, store lost_reason
-  - [ ] Set bike status OOO (or similar to keep out of availability)
-  - [ ] Recalc rental status
+- [ ] Set item status LOST, store lost_reason
+- [ ] Set bike status OOO (or similar to keep out of availability)
+- [ ] Recalc rental status
 - [ ] **10.2** Create `POST /api/rentals/{rentalId}/items/{rentalItemId}/lost`
 
 ### Frontend
@@ -236,9 +236,9 @@
 
 ### Backend
 - [ ] **11.1** Implement rental status derivation logic:
-  - [ ] If all items RETURNED/LOST → CLOSED
-  - [ ] Else if any RENTED and now > due_at + grace → OVERDUE
-  - [ ] Else → ACTIVE
+- [ ] If all items RETURNED/LOST → CLOSED
+- [ ] Else if any RENTED and now > due_at + grace → OVERDUE
+- [ ] Else → ACTIVE
 - [ ] **11.2** Ensure status recalculated on every return/lost action
 - [ ] **11.3** Overview endpoint returns correct overdue counts and flags
 
@@ -253,8 +253,8 @@
 
 ### Backend
 - [ ] **12.1** Implement `GET /api/maintenance/ooo/export`:
-  - [ ] Query OOO bikes for hotel
-  - [ ] Return CSV with columns: bike_number, bike_type, ooo_note, ooo_since_date
+- [ ] Query OOO bikes for hotel
+- [ ] Return CSV with columns: bike_number, bike_type, ooo_note, ooo_since_date
 
 ### Frontend
 - [ ] **12.2** `/maintenance` route (or `/bikes?status=OOO` with export button)
@@ -266,8 +266,8 @@
 
 ### Backend
 - [ ] **13.1** Implement `GET /api/rentals?status=ACTIVE|OVERDUE|CLOSED`:
-  - [ ] Filter by status (can be combined or individual)
-  - [ ] Return list with summary fields
+- [ ] Filter by status (can be combined or individual)
+- [ ] Return list with summary fields
 
 ### Frontend
 - [ ] **13.2** Optionally add rentals history view or filter on home (CLOSED rentals)

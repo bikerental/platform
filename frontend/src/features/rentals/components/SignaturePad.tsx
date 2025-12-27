@@ -95,7 +95,7 @@ export function SignaturePad({ onSignatureChange, signatureRef }: SignaturePadPr
       </div>
       
       <p className="text-xs text-slate-500">
-        Use your finger or stylus to sign above
+        Use your finger to sign above
       </p>
     </div>
   )

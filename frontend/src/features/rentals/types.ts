@@ -121,3 +121,16 @@ export interface ReturnAllResponse {
   returnedItems: ReturnBikeResponse[]
 }
 
+/**
+ * Response from marking a bike as lost
+ */
+export interface MarkLostResponse {
+  rentalItemId: number
+  bikeId: number
+  bikeNumber: string
+  itemStatus: RentalItemStatus
+  lostReason: string | null
+  rentalStatus: RentalStatus
+  rentalClosed: boolean
+}
+

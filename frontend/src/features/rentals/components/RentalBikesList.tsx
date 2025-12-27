@@ -7,9 +7,10 @@ import { useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Toast } from '@/components/ui/Toast'
 import { useToast } from '@/lib/hooks/useToast'
-import { returnBike, undoReturnBike, returnSelected, returnAll } from '../api/rentalApi'
+import { returnBike, undoReturnBike, returnSelected, returnAll, markBikeLost } from '../api/rentalApi'
 import { BikesActionBar } from './BikesActionBar'
 import { BikesTable } from './BikesTable'
+import { MarkLostDialog } from './MarkLostDialog'
 import { ReturnConfirmContent } from './ReturnConfirmContent'
 import type { RentalItem, RentalStatus } from '../types'
 
@@ -31,6 +32,7 @@ export function RentalBikesList({ rentalId, items, rentalStatus, onRefresh }: Re
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>(null)
+  const [markLostItem, setMarkLostItem] = useState<RentalItem | null>(null)
 
   const { toast, showToast, hideToast } = useToast()
 
@@ -116,7 +118,23 @@ export function RentalBikesList({ rentalId, items, rentalStatus, onRefresh }: Re
   }
 
   const handleMarkLost = (item: RentalItem) => {
-    alert(`Mark lost functionality coming in Phase 10 for bike ${item.bikeNumber}`)
+    setMarkLostItem(item)
+  }
+
+  const handleConfirmMarkLost = async (item: RentalItem, reason: string) => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      await markBikeLost(rentalId, item.rentalItemId, reason || undefined)
+      setMarkLostItem(null)
+      showToast(`Bike ${item.bikeNumber} marked as lost`, 'success')
+      onRefresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to mark bike as lost')
+      showToast('Failed to mark bike as lost', 'error')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleConfirm = () => {
@@ -170,6 +188,14 @@ export function RentalBikesList({ rentalId, items, rentalStatus, onRefresh }: Re
       >
         {confirmDialog && <ReturnConfirmContent type={confirmDialog.type} item={confirmDialog.item} items={confirmDialog.items} />}
       </Modal>
+
+      <MarkLostDialog
+        isOpen={markLostItem !== null}
+        item={markLostItem}
+        isLoading={isLoading}
+        onClose={() => setMarkLostItem(null)}
+        onConfirm={handleConfirmMarkLost}
+      />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
     </div>
