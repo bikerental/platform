@@ -218,47 +218,52 @@
 ## Phase 10: Mark Lost
 
 ### Backend
-- [ ] **10.1** Implement `RentalService.markLost(rentalId, rentalItemId, reason)`:
-- [ ] Set item status LOST, store lost_reason
-- [ ] Set bike status OOO (or similar to keep out of availability)
-- [ ] Recalc rental status
-- [ ] **10.2** Create `POST /api/rentals/{rentalId}/items/{rentalItemId}/lost`
+- [x] **10.1** Implement `RentalService.markLost(rentalId, rentalItemId, reason)`:
+- [x] Set item status LOST, store lost_reason
+- [x] Set bike status OOO (or similar to keep out of availability)
+- [x] Recalc rental status
+- [x] **10.2** Create `POST /api/rentals/{rentalId}/items/{rentalItemId}/lost`
 
 ### Frontend
-- [ ] **10.3** "Mark as lost" button on RENTED items
-- [ ] **10.4** Confirmation dialog with optional reason text input
-- [ ] **10.5** On confirm: call API → update UI → show notification
-- [ ] **10.6** Lost items display indicator + reason in rental detail
+- [x] **10.3** "Mark as lost" button on RENTED items
+- [x] **10.4** Confirmation dialog with optional reason text input
+- [x] **10.5** On confirm: call API → update UI → show notification
+- [x] **10.6** Lost items display indicator + reason in rental detail
 
 ---
 
 ## Phase 11: Overdue Handling
 
 ### Backend
-- [ ] **11.1** Implement rental status derivation logic:
-- [ ] If all items RETURNED/LOST → CLOSED
-- [ ] Else if any RENTED and now > due_at + grace → OVERDUE
-- [ ] Else → ACTIVE
-- [ ] **11.2** Ensure status recalculated on every return/lost action
-- [ ] **11.3** Overview endpoint returns correct overdue counts and flags
+- [x] **11.1** Implement rental status derivation logic:
+- [x] If all items RETURNED/LOST → CLOSED
+- [x] Else if any RENTED and now > due_at + grace → OVERDUE
+- [x] Else → ACTIVE
+- [x] **11.2** Ensure status recalculated on every return/lost action
+- [x] **11.3** Overview endpoint returns correct overdue counts and flags
 
 ### Frontend
-- [ ] **11.4** Overdue rentals highlighted in home list (e.g., red badge, sorted first)
-- [ ] **11.5** Rental detail shows overdue status badge when applicable
-- [ ] **11.6** Overdue does NOT disable return/lost actions (informational only)
+- [x] **11.4** Overdue rentals highlighted in home list (e.g., red badge, sorted first)
+- [x] **11.5** Rental detail shows overdue status badge when applicable
+- [x] **11.6** Overdue does NOT disable return/lost actions (informational only)
 
 ---
 
 ## Phase 12: Maintenance Export
 
 ### Backend
-- [ ] **12.1** Implement `GET /api/maintenance/ooo/export`:
-- [ ] Query OOO bikes for hotel
-- [ ] Return CSV with columns: bike_number, bike_type, ooo_note, ooo_since_date
+- [x] **12.1** Implement `GET /api/maintenance/ooo/export`:
+- [x] Query OOO bikes for hotel (scoped by hotelId from JWT)
+- [x] Return CSV with columns: bike_number, bike_type, ooo_note, ooo_since_date
+- [x] Sort by ooo_since ASC (oldest first), nulls last, then bike_number ASC
+- [x] Proper CSV escaping (commas, quotes, newlines)
+- [x] Headers: Content-Type: text/csv, Content-Disposition with date-stamped filename
+- [x] Integration tests: ordering, hotel scoping, header-only for empty results
 
 ### Frontend
-- [ ] **12.2** `/maintenance` route (or `/bikes?status=OOO` with export button)
-- [ ] **12.3** "Export OOO to CSV" button → trigger download
+- [x] **12.2** `/bikes?status=OOO` shows OOO bikes sorted oldest first (matches export)
+- [x] **12.3** "Export OOO to CSV (Print)" button visible when filtering by OOO status
+- [x] Button has loading state and error toast on failure
 
 ---
 
@@ -351,7 +356,7 @@
 | 9. Returns | Complete | Backend: returnBike, returnSelected, returnAll methods with rental status recalculation. Undo return support. Frontend: RentalBikesList with multi-select, confirmation dialogs, 30s undo window, toast notifications. Actions hidden when rental is CLOSED. |
 | 10. Mark Lost | Not started | |
 | 11. Overdue | Not started | |
-| 12. Export | Not started | |
+| 12. Export | Complete | Backend: MaintenanceController with CSV export, proper escaping, sorting. Frontend: Export button on OOO view with loading/error states. Integration tests cover ordering, hotel scoping, edge cases. |
 | 13. Rentals List | Not started | |
 | 14. Polish | Not started | |
 | 15. Testing | Not started | |
