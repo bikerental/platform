@@ -4,13 +4,15 @@ A full-stack bike rental management system for hotels, built with Spring Boot an
 
 ## Tech Stack
 
-**Backend**
+### Backend
+
 - Java 21
 - Spring Boot 3.4 (Web, Security JWT, Data JPA)
 - MySQL
 - Maven
 
-**Frontend**
+### Frontend
+
 - React 19 + TypeScript
 - Vite
 - Tailwind CSS 4.1
@@ -86,8 +88,8 @@ npm run dev
 ```
 
 The application will be available at:
-- Frontend: http://localhost:5173 
-- Backend API: http://localhost:8080/api
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:8080/api`
 
 ## Default Credentials (Development Only)
 
@@ -99,7 +101,7 @@ The application will be available at:
 
 ## Project Structure
 
-```
+```text
 platform/
 ├── src/                    # Backend source code
 │   └── main/
