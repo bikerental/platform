@@ -108,7 +108,7 @@ class BikeServiceTest {
     }
 
     @Test
-    void listBikes_WithStatusFilter_ReturnsFilteredBikes() {
+    void listBikes_WithOooStatusFilter_UsesOooBikesQuery() {
         // Arrange
         when(hotelContext.getCurrentHotelId()).thenReturn(HOTEL_ID_1);
         
@@ -119,7 +119,8 @@ class BikeServiceTest {
         oooBike.setStatus(Bike.BikeStatus.OOO);
         
         List<Bike> expectedBikes = Arrays.asList(oooBike);
-        when(bikeRepository.findByHotelIdWithFilters(HOTEL_ID_1, Bike.BikeStatus.OOO, null))
+        // OOO status now uses the specialized query with proper sorting
+        when(bikeRepository.findOooBikesWithFilters(HOTEL_ID_1, null))
                 .thenReturn(expectedBikes);
 
         // Act
@@ -128,7 +129,31 @@ class BikeServiceTest {
         // Assert
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getStatus()).isEqualTo(Bike.BikeStatus.OOO);
-        verify(bikeRepository).findByHotelIdWithFilters(HOTEL_ID_1, Bike.BikeStatus.OOO, null);
+        verify(bikeRepository).findOooBikesWithFilters(HOTEL_ID_1, null);
+    }
+
+    @Test
+    void listBikes_WithNonOooStatusFilter_UsesGenericQuery() {
+        // Arrange
+        when(hotelContext.getCurrentHotelId()).thenReturn(HOTEL_ID_1);
+        
+        Bike availableBike = new Bike();
+        availableBike.setBikeId(3L);
+        availableBike.setHotelId(HOTEL_ID_1);
+        availableBike.setBikeNumber("B003");
+        availableBike.setStatus(Bike.BikeStatus.AVAILABLE);
+        
+        List<Bike> expectedBikes = Arrays.asList(availableBike);
+        when(bikeRepository.findByHotelIdWithFilters(HOTEL_ID_1, Bike.BikeStatus.AVAILABLE, null))
+                .thenReturn(expectedBikes);
+
+        // Act
+        List<Bike> result = bikeService.listBikes(Bike.BikeStatus.AVAILABLE, null);
+
+        // Assert
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getStatus()).isEqualTo(Bike.BikeStatus.AVAILABLE);
+        verify(bikeRepository).findByHotelIdWithFilters(HOTEL_ID_1, Bike.BikeStatus.AVAILABLE, null);
     }
 
     @Test

@@ -21,9 +21,17 @@ public class BikeService {
 
     /**
      * List bikes for the current hotel, optionally filtered by status and search query.
+     * For OOO status, bikes are sorted by ooo_since ASC (oldest first), nulls last.
+     * For other statuses, bikes are sorted by bike_number ASC.
      */
     public List<Bike> listBikes(Bike.BikeStatus status, String searchQuery) {
         Long hotelId = hotelContext.getCurrentHotelId();
+        
+        // Use specialized query for OOO status to get proper sorting
+        if (status == Bike.BikeStatus.OOO) {
+            return bikeRepository.findOooBikesWithFilters(hotelId, searchQuery);
+        }
+        
         return bikeRepository.findByHotelIdWithFilters(hotelId, status, searchQuery);
     }
 

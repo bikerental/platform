@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### AI IDE Settings ###
+.cursor/
+.claude/
