@@ -31,4 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
-.cursor/rules/
+
+### AI IDE Settings ###
+.cursor/
+.claude/
