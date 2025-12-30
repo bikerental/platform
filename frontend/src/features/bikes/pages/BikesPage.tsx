@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { useBikes } from '../hooks/useBikes'
 import { BikesTable } from '../components/BikesTable'
 import { MarkOooDialog } from '../components/MarkOooDialog'
-import { exportOooBikesCsv } from '../api/bikeApi'
+import { exportOooBikesExcel } from '../api/bikeApi'
 import { useToast } from '@/lib/hooks/useToast'
 import { Toast } from '@/components/ui/Toast'
 import type { Bike, BikeStatus } from '../types'
@@ -48,7 +48,7 @@ export function BikesPage() {
   const handleExportOoo = async () => {
     setIsExporting(true)
     try {
-      await exportOooBikesCsv()
+      await exportOooBikesExcel()
       showToast('OOO bikes exported successfully', 'success')
     } catch (err) {
       showToast(
@@ -112,7 +112,7 @@ export function BikesPage() {
                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                Export OOO to CSV (Print)
+                Export OOO to Excel
               </>
             )}
           </button>

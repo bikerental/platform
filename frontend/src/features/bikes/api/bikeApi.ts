@@ -3,7 +3,7 @@
  * Handles all bike-related API calls.
  */
 
-import { apiGet, apiPatch, apiUrl, getToken } from '@/lib/api'
+import { apiGet, apiPatch, apiUrl, getToken, clearToken } from '@/lib/api'
 import type { Bike, BikeListParams } from '../types'
 
 /**
@@ -46,11 +46,11 @@ export async function markAvailable(bikeId: number): Promise<Bike> {
 }
 
 /**
- * Export OOO bikes as CSV file download.
- * Triggers browser download with file named "ooo-bikes-YYYY-MM-DD.csv".
+ * Export OOO bikes as Excel file download.
+ * Triggers browser download with file named "ooo-bikes-YYYY-MM-DD.xlsx".
  * @throws Error if export fails
  */
-export async function exportOooBikesCsv(): Promise<void> {
+export async function exportOooBikesExcel(): Promise<void> {
   const token = getToken()
   
   const response = await fetch(apiUrl('/maintenance/ooo/export'), {
@@ -62,15 +62,27 @@ export async function exportOooBikesCsv(): Promise<void> {
 
   if (!response.ok) {
     if (response.status === 401) {
+      clearToken()
       window.location.href = '/login'
       throw new Error('Session expired. Please login again.')
     }
-    throw new Error('Failed to export OOO bikes')
+    if (response.status === 400) {
+      const text = await response.text().catch(() => '')
+      throw new Error(text || 'Invalid request for OOO bikes export')
+    }
+    if (response.status === 404) {
+      throw new Error('No OOO bikes found to export')
+    }
+    if (response.status === 409) {
+      throw new Error('Conflict while exporting OOO bikes')
+    }
+    const text = await response.text().catch(() => '')
+    throw new Error(text || `Export failed (${response.status})`)
   }
 
   // Extract filename from Content-Disposition header or use default
   const contentDisposition = response.headers.get('Content-Disposition')
-  let filename = 'ooo-bikes.csv'
+  let filename = 'ooo-bikes.xlsx'
   if (contentDisposition) {
     const match = contentDisposition.match(/filename="?([^";\n]+)"?/)
     if (match && match[1]) {
@@ -98,6 +110,6 @@ export const bikeApi = {
   getBikeByNumber,
   markOoo,
   markAvailable,
-  exportOooBikesCsv,
+  exportOooBikesExcel,
 }
 
