@@ -97,6 +97,16 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Flyway for database migrations -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-mysql</artifactId>
+		</dependency>
+
 		<!-- Apache POI for Excel export -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
