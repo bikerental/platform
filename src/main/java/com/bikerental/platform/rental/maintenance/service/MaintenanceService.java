@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -82,7 +82,7 @@ public class MaintenanceService {
             return "";
         }
         return bike.getOooSince()
-                .atZone(ZoneId.systemDefault())
+                .atOffset(ZoneOffset.UTC)
                 .toLocalDate()
                 .format(DATE_FORMATTER);
     }
