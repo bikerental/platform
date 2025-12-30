@@ -10,6 +10,8 @@ A full-stack bike rental management system for hotels, built with Spring Boot an
 - Spring Boot 3.4 (Web, Security JWT, Data JPA)
 - MySQL
 - Maven
+- Apache POI (Excel Export)
+
 
 ### Frontend
 
