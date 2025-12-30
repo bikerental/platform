@@ -35,3 +35,6 @@ build/
 ### AI IDE Settings ###
 .cursor/
 .claude/
+
+### Temporary docs ###
+docs/DEPLOYMENT*.md
