@@ -254,15 +254,15 @@
 ### Backend
 - [x] **12.1** Implement `GET /api/maintenance/ooo/export`:
 - [x] Query OOO bikes for hotel (scoped by hotelId from JWT)
-- [x] Return CSV with columns: bike_number, bike_type, ooo_note, ooo_since_date
+- [x] Return Excel (.xlsx) with columns: Bike Number, Bike Type, OOO Note, OOO Since
 - [x] Sort by ooo_since ASC (oldest first), nulls last, then bike_number ASC
-- [x] Proper CSV escaping (commas, quotes, newlines)
-- [x] Headers: Content-Type: text/csv, Content-Disposition with date-stamped filename
+- [x] Uses Apache POI for Excel generation
+- [x] Headers: Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 - [x] Integration tests: ordering, hotel scoping, header-only for empty results
 
 ### Frontend
 - [x] **12.2** `/bikes?status=OOO` shows OOO bikes sorted oldest first (matches export)
-- [x] **12.3** "Export OOO to CSV (Print)" button visible when filtering by OOO status
+- [x] **12.3** "Export OOO to Excel" button visible when filtering by OOO status
 - [x] Button has loading state and error toast on failure
 
 ---
@@ -325,10 +325,10 @@
 - [ ] `PATCH /api/settings` – update hotel settings
 - [ ] `/settings` route – UI for configuring rental durations, grace period, T&C editor
 
-### Bike Management
-- [ ] `POST /api/bikes` – create new bike
-- [ ] `DELETE /api/bikes/{bikeId}` – soft-delete/archive bike (fail if rental history)
-- [ ] Bike creation UI in `/bikes` or `/settings`
+### Bike Management (via SQL/Admin API)
+- [ ] `POST /api/admin/bikes` – create new bike (admin-only, hotel-scoped)
+- [ ] `DELETE /api/admin/bikes/{bikeId}` – soft-delete/archive bike (fail if rental history)
+- [ ] Bike creation UI in admin panel (future)
 
 ### Other Enhancements
 - [ ] Refresh token / token renewal
@@ -356,7 +356,7 @@
 | 9. Returns | Complete | Backend: returnBike, returnSelected, returnAll methods with rental status recalculation. Undo return support. Frontend: RentalBikesList with multi-select, confirmation dialogs, 30s undo window, toast notifications. Actions hidden when rental is CLOSED. |
 | 10. Mark Lost | Not started | |
 | 11. Overdue | Not started | |
-| 12. Export | Complete | Backend: MaintenanceController with CSV export, proper escaping, sorting. Frontend: Export button on OOO view with loading/error states. Integration tests cover ordering, hotel scoping, edge cases. |
+| 12. Export | Complete | Backend: MaintenanceController with Excel export (.xlsx), proper formatting, sorting. Frontend: Export button on OOO view with loading/error states. Integration tests cover ordering, hotel scoping, edge cases. |
 | 13. Rentals List | Not started | |
 | 14. Polish | Not started | |
 | 15. Testing | Not started | |
