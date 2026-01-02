@@ -41,3 +41,4 @@ build/
 
 ### Temporary docs ###
 docs/DEPLOYMENT*.md
+docs/azure-deployment-plan.md

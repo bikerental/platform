@@ -1,0 +1,785 @@
+openapi: 3.1.0
+info:
+  title: BikeRental API
+  description: "API for managing bike rentals at hotels/hostels. Supports hotel authentication,\
+    \ bike inventory, rental lifecycle, and admin operations."
+  version: "1.0"
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+security:
+- bearerAuth: []
+paths:
+  /api/rentals:
+    post:
+      tags:
+      - rental-controller
+      operationId: createRental
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRentalRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RentalResponse"
+  /api/rentals/{rentalId}/return-selected:
+    post:
+      tags:
+      - rental-controller
+      operationId: returnSelected
+      parameters:
+      - name: rentalId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReturnSelectedRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ReturnAllResponse"
+  /api/rentals/{rentalId}/return-all:
+    post:
+      tags:
+      - rental-controller
+      operationId: returnAll
+      parameters:
+      - name: rentalId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ReturnAllResponse"
+  /api/rentals/{rentalId}/items/{rentalItemId}/undo-return:
+    post:
+      tags:
+      - rental-controller
+      operationId: undoReturn
+      parameters:
+      - name: rentalId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: rentalItemId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ReturnBikeResponse"
+  /api/rentals/{rentalId}/items/{rentalItemId}/return:
+    post:
+      tags:
+      - rental-controller
+      operationId: returnBike
+      parameters:
+      - name: rentalId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: rentalItemId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ReturnBikeResponse"
+  /api/rentals/{rentalId}/items/{rentalItemId}/lost:
+    post:
+      tags:
+      - rental-controller
+      operationId: markLost
+      parameters:
+      - name: rentalId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: rentalItemId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkLostRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MarkLostResponse"
+  /api/rentals/{rentalId}/add-bike:
+    post:
+      tags:
+      - rental-controller
+      operationId: addBike
+      parameters:
+      - name: rentalId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddBikeRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RentalItemDetailResponse"
+  /api/auth/login:
+    post:
+      tags:
+      - auth-controller
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/admin/hotels:
+    get:
+      tags:
+      - admin-controller
+      operationId: listHotels
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HotelResponse"
+    post:
+      tags:
+      - admin-controller
+      operationId: createHotel
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHotelRequest"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/HotelResponse"
+  /api/admin/hotels/{hotelId}/reset-password:
+    post:
+      tags:
+      - admin-controller
+      operationId: resetPassword
+      parameters:
+      - name: hotelId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+  /api/bikes/{bikeId}/ooo:
+    patch:
+      tags:
+      - bike-controller
+      operationId: markOoo
+      parameters:
+      - name: bikeId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkOooRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/BikeResponse"
+  /api/bikes/{bikeId}/available:
+    patch:
+      tags:
+      - bike-controller
+      operationId: markAvailable
+      parameters:
+      - name: bikeId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/BikeResponse"
+  /api/rentals/{rentalId}:
+    get:
+      tags:
+      - rental-controller
+      operationId: getRentalDetail
+      parameters:
+      - name: rentalId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RentalDetailResponse"
+  /api/rentals/{rentalId}/signature:
+    get:
+      tags:
+      - rental-controller
+      operationId: getRentalSignature
+      parameters:
+      - name: rentalId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: byte
+  /api/rentals/{rentalId}/contract:
+    get:
+      tags:
+      - rental-controller
+      operationId: getRentalContract
+      parameters:
+      - name: rentalId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            text/html:
+              schema:
+                type: string
+  /api/overview:
+    get:
+      tags:
+      - overview-controller
+      operationId: getOverview
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OverviewResponse"
+  /api/maintenance/ooo/export:
+    get:
+      tags:
+      - maintenance-controller
+      operationId: exportOooBikes
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: byte
+  /api/bikes:
+    get:
+      tags:
+      - bike-controller
+      operationId: listBikes
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BikeResponse"
+  /api/bikes/by-number/{bikeNumber}:
+    get:
+      tags:
+      - bike-controller
+      operationId: getBikeByNumber
+      parameters:
+      - name: bikeNumber
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/BikeResponse"
+components:
+  schemas:
+    CreateRentalRequest:
+      type: object
+      properties:
+        bikeNumbers:
+          type: array
+          items:
+            type: string
+        roomNumber:
+          type: string
+        bedNumber:
+          type: string
+        returnDateTime:
+          type: string
+          format: date-time
+        tncVersion:
+          type: string
+        signatureBase64Png:
+          type: string
+      required:
+      - bikeNumbers
+      - returnDateTime
+      - roomNumber
+      - signatureBase64Png
+      - tncVersion
+    RentalItemResponse:
+      type: object
+      properties:
+        rentalItemId:
+          type: integer
+          format: int64
+        bikeId:
+          type: integer
+          format: int64
+        bikeNumber:
+          type: string
+        bikeType:
+          type: string
+        status:
+          type: string
+          enum:
+          - RENTED
+          - RETURNED
+          - LOST
+    RentalResponse:
+      type: object
+      properties:
+        rentalId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - OVERDUE
+          - CLOSED
+        startAt:
+          type: string
+          format: date-time
+        dueAt:
+          type: string
+          format: date-time
+        roomNumber:
+          type: string
+        bedNumber:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RentalItemResponse"
+    ReturnSelectedRequest:
+      type: object
+      properties:
+        rentalItemIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+      required:
+      - rentalItemIds
+    ReturnAllResponse:
+      type: object
+      properties:
+        rentalId:
+          type: integer
+          format: int64
+        rentalStatus:
+          type: string
+          enum:
+          - ACTIVE
+          - OVERDUE
+          - CLOSED
+        returnAt:
+          type: string
+          format: date-time
+        returnedCount:
+          type: integer
+          format: int32
+        returnedItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReturnBikeResponse"
+    ReturnBikeResponse:
+      type: object
+      properties:
+        rentalItemId:
+          type: integer
+          format: int64
+        bikeId:
+          type: integer
+          format: int64
+        bikeNumber:
+          type: string
+        itemStatus:
+          type: string
+          enum:
+          - RENTED
+          - RETURNED
+          - LOST
+        returnedAt:
+          type: string
+          format: date-time
+        rentalStatus:
+          type: string
+          enum:
+          - ACTIVE
+          - OVERDUE
+          - CLOSED
+        rentalClosed:
+          type: boolean
+    MarkLostRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+    MarkLostResponse:
+      type: object
+      properties:
+        rentalItemId:
+          type: integer
+          format: int64
+        bikeId:
+          type: integer
+          format: int64
+        bikeNumber:
+          type: string
+        itemStatus:
+          type: string
+          enum:
+          - RENTED
+          - RETURNED
+          - LOST
+        lostReason:
+          type: string
+        rentalStatus:
+          type: string
+          enum:
+          - ACTIVE
+          - OVERDUE
+          - CLOSED
+        rentalClosed:
+          type: boolean
+    AddBikeRequest:
+      type: object
+      properties:
+        bikeNumber:
+          type: string
+      required:
+      - bikeNumber
+    RentalItemDetailResponse:
+      type: object
+      properties:
+        rentalItemId:
+          type: integer
+          format: int64
+        bikeId:
+          type: integer
+          format: int64
+        bikeNumber:
+          type: string
+        bikeType:
+          type: string
+        status:
+          type: string
+          enum:
+          - RENTED
+          - RETURNED
+          - LOST
+        returnedAt:
+          type: string
+          format: date-time
+        lostReason:
+          type: string
+    LoginRequest:
+      type: object
+      properties:
+        hotelCode:
+          type: string
+        password:
+          type: string
+      required:
+      - hotelCode
+      - password
+    CreateHotelRequest:
+      type: object
+      properties:
+        hotelCode:
+          type: string
+          maxLength: 50
+          minLength: 3
+        hotelName:
+          type: string
+          maxLength: 255
+          minLength: 0
+        password:
+          type: string
+          maxLength: 2147483647
+          minLength: 8
+      required:
+      - hotelCode
+      - hotelName
+      - password
+    HotelResponse:
+      type: object
+      properties:
+        hotelId:
+          type: integer
+          format: int64
+        hotelCode:
+          type: string
+        hotelName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    ResetPasswordRequest:
+      type: object
+      properties:
+        newPassword:
+          type: string
+          maxLength: 2147483647
+          minLength: 8
+      required:
+      - newPassword
+    MarkOooRequest:
+      type: object
+      properties:
+        note:
+          type: string
+      required:
+      - note
+    BikeResponse:
+      type: object
+      properties:
+        bikeId:
+          type: integer
+          format: int64
+        bikeNumber:
+          type: string
+        bikeType:
+          type: string
+        status:
+          type: string
+          enum:
+          - AVAILABLE
+          - RENTED
+          - OOO
+        oooNote:
+          type: string
+        oooSince:
+          type: string
+          format: date-time
+    RentalDetailResponse:
+      type: object
+      properties:
+        rentalId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - OVERDUE
+          - CLOSED
+        startAt:
+          type: string
+          format: date-time
+        dueAt:
+          type: string
+          format: date-time
+        returnAt:
+          type: string
+          format: date-time
+        roomNumber:
+          type: string
+        bedNumber:
+          type: string
+        tncVersion:
+          type: string
+        signatureId:
+          type: integer
+          format: int64
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RentalItemDetailResponse"
+    ActiveRentalSummary:
+      type: object
+      properties:
+        rentalId:
+          type: integer
+          format: int64
+        roomNumber:
+          type: string
+        bedNumber:
+          type: string
+        dueAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - OVERDUE
+          - CLOSED
+        bikesOut:
+          type: integer
+          format: int32
+        bikesTotal:
+          type: integer
+          format: int32
+    OverviewResponse:
+      type: object
+      properties:
+        bikesAvailable:
+          type: integer
+          format: int32
+        bikesRented:
+          type: integer
+          format: int32
+        bikesOoo:
+          type: integer
+          format: int32
+        rentalsActive:
+          type: integer
+          format: int32
+        rentalsOverdue:
+          type: integer
+          format: int32
+        activeRentals:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActiveRentalSummary"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: JWT token obtained from /api/auth/login
+      scheme: bearer
+      bearerFormat: JWT
