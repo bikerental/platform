@@ -109,7 +109,11 @@ export function RentalBikesList({ rentalId, items, rentalStatus, onRefresh }: Re
 
   const toggleSelection = (itemId: number) => {
     const newSelection = new Set(selectedItems)
-    newSelection.has(itemId) ? newSelection.delete(itemId) : newSelection.add(itemId)
+    if (newSelection.has(itemId)) {
+      newSelection.delete(itemId)
+    } else {
+      newSelection.add(itemId)
+    }
     setSelectedItems(newSelection)
   }
 

@@ -67,7 +67,7 @@ export function useNewRental(): UseNewRentalReturn {
         // Add to assigned list
         setAssignedBikes((prev) => [...prev, toAssignedBike(bike)])
         return true
-      } catch (err) {
+      } catch {
         // API error - bike not found
         setError({ type: 'NOT_FOUND', bikeNumber: trimmedNumber })
         return false

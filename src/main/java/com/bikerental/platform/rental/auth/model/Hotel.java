@@ -33,6 +33,9 @@ public class Hotel {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "is_admin", nullable = false)
+    private boolean isAdmin = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();

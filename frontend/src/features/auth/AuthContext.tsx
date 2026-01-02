@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { createContext, useContext, useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { 
   login as authLogin, 
@@ -11,22 +11,16 @@ import type { LoginRequest, AuthState, AuthContextType } from './types'
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>({
-    isAuthenticated: false,
-    hotelName: null,
-    isLoading: true,
-  })
-
-  // Initialize auth state from localStorage
-  useEffect(() => {
+  // Initialize state directly from localStorage (synchronous, avoids useEffect)
+  const [state, setState] = useState<AuthState>(() => {
     const authenticated = checkAuth()
     const hotelName = getHotelName()
-    setState({
+    return {
       isAuthenticated: authenticated,
       hotelName: authenticated ? hotelName : null,
       isLoading: false,
-    })
-  }, [])
+    }
+  })
 
   const login = useCallback(async (credentials: LoginRequest) => {
     const response = await authLogin(credentials)
@@ -53,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
   if (!context) {

@@ -13,7 +13,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,12 +28,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@TestPropertySource(properties = {
-        "jwt.secret=test-secret-key-that-is-at-least-256-bits-long-for-hmac-sha-256-algorithm",
-        "jwt.expiration-hours=10",
-        "admin.username=admin",
-        "admin.password-hash=$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
-})
 @SuppressWarnings("null")
 class AdminIntegrationTest {
 
@@ -59,7 +52,15 @@ class AdminIntegrationTest {
     void setUp() {
         // Clear existing hotels
         hotelRepository.deleteAll();
-        
+
+        // Create admin user in database
+        Hotel admin = new Hotel();
+        admin.setHotelCode("admin");
+        admin.setHotelName("System Administrator");
+        admin.setPasswordHash(passwordEncoder.encode("admin123"));
+        admin.setAdmin(true);
+        hotelRepository.save(admin);
+
         // Generate admin token
         adminToken = jwtService.generateAdminToken("admin");
     }

@@ -33,9 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @AutoConfigureMockMvc(addFilters = false)
 @TestPropertySource(properties = {
         "jwt.secret=test-secret-key-that-is-at-least-256-bits-long-for-hmac-sha-256-algorithm",
-        "jwt.expiration-hours=10",
-        "admin.username=admin",
-        "admin.password-hash=$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+        "jwt.expiration-hours=10"
 })
 @SuppressWarnings({"null"})
 class AdminControllerTest {

@@ -51,10 +51,11 @@ public class AdminService {
     }
 
     /**
-     * List all hotels (useful to find hotel ID for password reset).
+     * List all hotels (excludes admin accounts).
      */
     public List<HotelResponse> getAllHotels() {
         return hotelRepository.findAll().stream()
+                .filter(hotel -> !hotel.isAdmin())
                 .map(this::toResponse)
                 .toList();
     }

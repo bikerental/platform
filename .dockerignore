@@ -1,0 +1,25 @@
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Build output
+target/
+
+# Frontend (separate container)
+frontend/
+
+# Docs
+docs/
+*.md
+
+# Local env
+.env
+.env.*
+
+# Logs
+*.log

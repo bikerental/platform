@@ -32,6 +32,13 @@ build/
 ### VS Code ###
 .vscode/
 
+### Environment ###
+.env
+
 ### AI IDE Settings ###
 .cursor/
 .claude/
+
+### Temporary docs ###
+docs/DEPLOYMENT*.md
+docs/azure-deployment-plan.md

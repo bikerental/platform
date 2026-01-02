@@ -12,7 +12,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,11 +33,9 @@ class AuthServiceTest {
     @Mock
     private JwtService jwtService;
 
-    @InjectMocks
     private AuthService authService;
 
-    private static final String ADMIN_USERNAME = "admin";
-    private static final String ADMIN_PASSWORD_HASH = "hashed-admin-password";
+    private static final String ADMIN_CODE = "admin";
     private static final String HOTEL_CODE = "HOTEL001";
     private static final String HOTEL_PASSWORD = "hotelPassword123";
     private static final String HOTEL_NAME = "Test Hotel";
@@ -47,34 +44,26 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Use reflection or constructor injection - for now, we'll test with actual constructor
-        // Since AuthService uses constructor injection with @Value, we need to create it manually
+        authService = new AuthService(hotelRepository, passwordEncoder, jwtService);
     }
 
     @Test
     void authenticate_WithValidHotelCredentials_ReturnsLoginResponse() {
         // Arrange
-        AuthService service = new AuthService(
-                hotelRepository,
-                passwordEncoder,
-                jwtService,
-                ADMIN_USERNAME,
-                ADMIN_PASSWORD_HASH 
-        );
-
         LoginRequest request = new LoginRequest(HOTEL_CODE, HOTEL_PASSWORD);
         Hotel hotel = new Hotel();
         hotel.setHotelId(HOTEL_ID);
         hotel.setHotelCode(HOTEL_CODE);
         hotel.setHotelName(HOTEL_NAME);
         hotel.setPasswordHash("hashedPassword");
+        hotel.setAdmin(false);
 
         when(hotelRepository.findByHotelCode(HOTEL_CODE)).thenReturn(Optional.of(hotel));
         when(passwordEncoder.matches(HOTEL_PASSWORD, hotel.getPasswordHash())).thenReturn(true);
         when(jwtService.generateToken(HOTEL_ID, HOTEL_CODE)).thenReturn(JWT_TOKEN);
 
         // Act
-        Optional<LoginResponse> result = service.authenticate(request);
+        Optional<LoginResponse> result = authService.authenticate(request);
 
         // Assert
         assertThat(result).isPresent();
@@ -88,19 +77,11 @@ class AuthServiceTest {
     @Test
     void authenticate_WithInvalidHotelCode_ReturnsEmpty() {
         // Arrange
-        AuthService service = new AuthService(
-                hotelRepository,
-                passwordEncoder,
-                jwtService,
-                ADMIN_USERNAME,
-                ADMIN_PASSWORD_HASH 
-        );
-
         LoginRequest request = new LoginRequest("INVALID_CODE", HOTEL_PASSWORD);
         when(hotelRepository.findByHotelCode("INVALID_CODE")).thenReturn(Optional.empty());
 
         // Act
-        Optional<LoginResponse> result = service.authenticate(request);
+        Optional<LoginResponse> result = authService.authenticate(request);
 
         // Assert
         assertThat(result).isEmpty();
@@ -112,14 +93,6 @@ class AuthServiceTest {
     @Test
     void authenticate_WithInvalidHotelPassword_ReturnsEmpty() {
         // Arrange
-        AuthService service = new AuthService(
-                hotelRepository,
-                passwordEncoder,
-                jwtService,
-                ADMIN_USERNAME,
-                ADMIN_PASSWORD_HASH 
-        );
-
         LoginRequest request = new LoginRequest(HOTEL_CODE, "wrongPassword");
         Hotel hotel = new Hotel();
         hotel.setHotelId(HOTEL_ID);
@@ -131,7 +104,7 @@ class AuthServiceTest {
         when(passwordEncoder.matches("wrongPassword", hotel.getPasswordHash())).thenReturn(false);
 
         // Act
-        Optional<LoginResponse> result = service.authenticate(request);
+        Optional<LoginResponse> result = authService.authenticate(request);
 
         // Assert
         assertThat(result).isEmpty();
@@ -142,73 +115,64 @@ class AuthServiceTest {
 
     @Test
     void authenticate_WithValidAdminCredentials_ReturnsLoginResponse() {
-        AuthService service = new AuthService(
-            hotelRepository,
-            passwordEncoder,
-            jwtService,
-            ADMIN_USERNAME,
-            ADMIN_PASSWORD_HASH
-        );
+        // Arrange
+        LoginRequest request = new LoginRequest(ADMIN_CODE, "admin123");
+        Hotel admin = new Hotel();
+        admin.setHotelId(99L);
+        admin.setHotelCode(ADMIN_CODE);
+        admin.setHotelName("System Administrator");
+        admin.setPasswordHash("hashedAdminPassword");
+        admin.setAdmin(true);
 
-        LoginRequest request = new LoginRequest(ADMIN_USERNAME, "admin123");
+        when(hotelRepository.findByHotelCode(ADMIN_CODE)).thenReturn(Optional.of(admin));
+        when(passwordEncoder.matches("admin123", admin.getPasswordHash())).thenReturn(true);
+        when(jwtService.generateAdminToken(ADMIN_CODE)).thenReturn(JWT_TOKEN);
 
-        when(passwordEncoder.matches("admin123", ADMIN_PASSWORD_HASH)).thenReturn(true);
-        when(jwtService.generateAdminToken(ADMIN_USERNAME)).thenReturn(JWT_TOKEN);
+        // Act
+        Optional<LoginResponse> result = authService.authenticate(request);
 
-        Optional<LoginResponse> result = service.authenticate(request);
-
+        // Assert
         assertThat(result).isPresent();
         assertThat(result.get().getAccessToken()).isEqualTo(JWT_TOKEN);
         assertThat(result.get().getHotelName()).isEqualTo("System Administrator");
-        verify(passwordEncoder).matches("admin123", ADMIN_PASSWORD_HASH);
-        verify(jwtService).generateAdminToken(ADMIN_USERNAME);
+        verify(jwtService).generateAdminToken(ADMIN_CODE);
     }
 
     @Test
     void authenticate_WithInvalidAdminPassword_ReturnsEmpty() {
         // Arrange
-        AuthService service = new AuthService(
-                hotelRepository,
-                passwordEncoder,
-                jwtService,
-                ADMIN_USERNAME,
-                ADMIN_PASSWORD_HASH 
-        );
+        LoginRequest request = new LoginRequest(ADMIN_CODE, "wrongPassword");
+        Hotel admin = new Hotel();
+        admin.setHotelId(99L);
+        admin.setHotelCode(ADMIN_CODE);
+        admin.setHotelName("System Administrator");
+        admin.setPasswordHash("hashedAdminPassword");
+        admin.setAdmin(true);
 
-        LoginRequest request = new LoginRequest(ADMIN_USERNAME, "wrongPassword");
-        when(passwordEncoder.matches("wrongPassword", ADMIN_PASSWORD_HASH)).thenReturn(false);
+        when(hotelRepository.findByHotelCode(ADMIN_CODE)).thenReturn(Optional.of(admin));
+        when(passwordEncoder.matches("wrongPassword", admin.getPasswordHash())).thenReturn(false);
 
         // Act
-        Optional<LoginResponse> result = service.authenticate(request);
+        Optional<LoginResponse> result = authService.authenticate(request);
 
         // Assert
         assertThat(result).isEmpty();
-
-        verify(passwordEncoder).matches("wrongPassword", ADMIN_PASSWORD_HASH);
+        verify(passwordEncoder).matches("wrongPassword", admin.getPasswordHash());
         verify(jwtService, never()).generateAdminToken(anyString());
-        verify(hotelRepository, never()).findByHotelCode(anyString());
     }
 
     @Test
-    void authenticate_WithAdminUsernameButWrongPassword_ReturnsEmpty() {
+    void authenticate_WithNonExistentAdmin_ReturnsEmpty() {
         // Arrange
-        AuthService service = new AuthService(
-                hotelRepository,
-                passwordEncoder,
-                jwtService,
-                ADMIN_USERNAME,
-                ADMIN_PASSWORD_HASH 
-        );
-
-        LoginRequest request = new LoginRequest(ADMIN_USERNAME, "wrongPassword");
+        LoginRequest request = new LoginRequest(ADMIN_CODE, "admin123");
+        when(hotelRepository.findByHotelCode(ADMIN_CODE)).thenReturn(Optional.empty());
 
         // Act
-        when(passwordEncoder.matches("wrongPassword", ADMIN_PASSWORD_HASH)).thenReturn(false);
-        Optional<LoginResponse> result = service.authenticate(request);
+        Optional<LoginResponse> result = authService.authenticate(request);
 
         // Assert
         assertThat(result).isEmpty();
-        verify(passwordEncoder).matches("wrongPassword", ADMIN_PASSWORD_HASH);
+        verify(hotelRepository).findByHotelCode(ADMIN_CODE);
         verify(jwtService, never()).generateAdminToken(anyString());
     }
 }
