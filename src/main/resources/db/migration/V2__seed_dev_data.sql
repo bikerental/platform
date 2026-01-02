@@ -19,32 +19,32 @@ SELECT
   h.hotel_id, '1', 'ADULT', 'AVAILABLE', NULL, NULL
 FROM hotels h
 WHERE h.hotel_code = 'STEELHOUSE'
-  AND NOT EXISTS (SELECT 1 FROM bikes WHERE hotel_id = h.hotel_id AND bike_number = 'B001');
+  AND NOT EXISTS (SELECT 1 FROM bikes WHERE hotel_id = h.hotel_id AND bike_number = '1');
 
 INSERT INTO bikes (hotel_id, bike_number, bike_type, status, ooo_note, ooo_since)
 SELECT
   h.hotel_id, '2', 'ADULT', 'AVAILABLE', NULL, NULL
 FROM hotels h
 WHERE h.hotel_code = 'STEELHOUSE'
-  AND NOT EXISTS (SELECT 1 FROM bikes WHERE hotel_id = h.hotel_id AND bike_number = 'B002');
+  AND NOT EXISTS (SELECT 1 FROM bikes WHERE hotel_id = h.hotel_id AND bike_number = '2');
 
 INSERT INTO bikes (hotel_id, bike_number, bike_type, status, ooo_note, ooo_since)
 SELECT
   h.hotel_id, '3', 'ADULT', 'AVAILABLE', NULL, NULL
 FROM hotels h
 WHERE h.hotel_code = 'STEELHOUSE'
-  AND NOT EXISTS (SELECT 1 FROM bikes WHERE hotel_id = h.hotel_id AND bike_number = 'B003');
+  AND NOT EXISTS (SELECT 1 FROM bikes WHERE hotel_id = h.hotel_id AND bike_number = '3');
 
 INSERT INTO bikes (hotel_id, bike_number, bike_type, status, ooo_note, ooo_since)
 SELECT
   h.hotel_id, '4', 'KIDS', 'AVAILABLE', NULL, NULL
 FROM hotels h
 WHERE h.hotel_code = 'STEELHOUSE'
-  AND NOT EXISTS (SELECT 1 FROM bikes WHERE hotel_id = h.hotel_id AND bike_number = 'B004');
+  AND NOT EXISTS (SELECT 1 FROM bikes WHERE hotel_id = h.hotel_id AND bike_number = '4');
 
 INSERT INTO bikes (hotel_id, bike_number, bike_type, status, ooo_note, ooo_since)
 SELECT
   h.hotel_id, '5', 'ADULT', 'OOO', 'Flat tire - needs repair', NOW()
 FROM hotels h
 WHERE h.hotel_code = 'STEELHOUSE'
-  AND NOT EXISTS (SELECT 1 FROM bikes WHERE hotel_id = h.hotel_id AND bike_number = 'B005');
+  AND NOT EXISTS (SELECT 1 FROM bikes WHERE hotel_id = h.hotel_id AND bike_number = '5');
