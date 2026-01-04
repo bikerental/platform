@@ -112,7 +112,7 @@ export function AddBikeDialog({ isOpen, rentalId, onClose, onSuccess }: AddBikeD
               type="text"
               value={bikeNumber}
               onChange={handleChange}
-              placeholder="e.g., B001"
+              placeholder="e.g., 1"
               disabled={isLoading}
               className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm outline-none transition-all
                 ${error

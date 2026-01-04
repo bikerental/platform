@@ -64,7 +64,7 @@ export function BikeInput({
             type="text"
             value={value}
             onChange={handleChange}
-            placeholder="Enter bike number (e.g., B001)"
+            placeholder="Enter bike number (e.g., 1)"
             disabled={isLoading}
             className={`w-full px-4 py-3 text-lg rounded-xl border-2 focus:ring-2 focus:ring-offset-1 outline-none transition-all
               ${
