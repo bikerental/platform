@@ -15,6 +15,7 @@ export interface ActiveRentalSummary {
   status: RentalStatus
   bikesOut: number
   bikesTotal: number
+  bikeNumbers: string[]
 }
 
 /**

@@ -110,11 +110,6 @@ export function LoginPage() {
             </button>
           </form>
         </div>
-
-        {/* Footer hint for development */}
-        <p className="text-center text-slate-500 text-sm mt-6">
-          Development: Use STEELHOUSE / password123
-        </p>
       </div>
     </div>
   )

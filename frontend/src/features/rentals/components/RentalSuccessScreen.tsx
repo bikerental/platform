@@ -27,11 +27,7 @@ export function RentalSuccessScreen({ rental, onDone }: RentalSuccessScreenProps
 
         {/* Rental Summary */}
         <div className="mb-8 rounded-2xl bg-slate-50 p-6 text-left">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-slate-500">Rental ID</span>
-              <p className="font-semibold text-slate-900">#{rental.rentalId}</p>
-            </div>
+          <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-slate-500">Room</span>
               <p className="font-semibold text-slate-900">

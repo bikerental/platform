@@ -63,9 +63,16 @@ function StatCard({ label, value, variant, icon }: StatCardProps) {
 function BikeIcon() {
   return (
     <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <circle cx="5.5" cy="17.5" r="3.5" strokeWidth="1.5" />
-      <circle cx="18.5" cy="17.5" r="3.5" strokeWidth="1.5" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 6h2l3 8M5.5 17.5l3-7h7l2.5 7M12 6v4" />
+      {/* Wheels */}
+      <circle cx="5" cy="17" r="4" strokeWidth="1.5" />
+      <circle cx="19" cy="17" r="4" strokeWidth="1.5" />
+      {/* Diamond frame: top tube (horizontal), down tube, seat tube, chain stay */}
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 9h8M8 9l-3 8M8 9l4 8M16 9l3 8M16 9l-4 8" />
+      {/* Seat */}
+      <path strokeLinecap="round" strokeWidth="2" d="M7 8h3" />
+      {/* Handlebar */}
+      <path strokeLinecap="round" strokeWidth="1.5" d="M15 6h4" />
+      <path strokeLinecap="round" strokeWidth="1.5" d="M16 9V6" />
     </svg>
   )
 }
