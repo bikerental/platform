@@ -62,7 +62,7 @@ export function useOverview(): UseOverviewReturn {
   }, [loadOverview])
 
   // Filter rentals client-side by search query
-  // Matches: rental ID, room number, bed number
+  // Matches: bike numbers, room number, bed number
   const filteredRentals = useMemo(() => {
     if (!data?.activeRentals) return []
 
@@ -70,11 +70,13 @@ export function useOverview(): UseOverviewReturn {
     if (!query) return data.activeRentals
 
     return data.activeRentals.filter((rental) => {
-      const rentalIdMatch = rental.rentalId.toString().includes(query)
       const roomMatch = rental.roomNumber.toLowerCase().includes(query)
       const bedMatch = rental.bedNumber?.toLowerCase().includes(query) ?? false
+      const bikeMatch = rental.bikeNumbers.some((bikeNumber) =>
+        bikeNumber.toLowerCase().includes(query)
+      )
 
-      return rentalIdMatch || roomMatch || bedMatch
+      return roomMatch || bedMatch || bikeMatch
     })
   }, [data?.activeRentals, debouncedQuery])
 

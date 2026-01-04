@@ -84,19 +84,16 @@ export function ActiveRentalsList({ rentals, isLoading }: ActiveRentalsListProps
         <thead className="bg-slate-50">
           <tr>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-              ID
+              Room / Bed
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Room / Bed
+              Bikes
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
               Due
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
               Status
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Bikes
             </th>
           </tr>
         </thead>
@@ -108,11 +105,6 @@ export function ActiveRentalsList({ rentals, isLoading }: ActiveRentalsListProps
               className="cursor-pointer transition-colors hover:bg-slate-50"
             >
               <td className="whitespace-nowrap px-4 py-3">
-                <span className="font-mono text-sm font-medium text-slate-900">
-                  #{rental.rentalId}
-                </span>
-              </td>
-              <td className="whitespace-nowrap px-4 py-3">
                 <div className="text-sm font-medium text-slate-900">
                   {rental.roomNumber}
                 </div>
@@ -121,6 +113,18 @@ export function ActiveRentalsList({ rentals, isLoading }: ActiveRentalsListProps
                     Bed {rental.bedNumber}
                   </div>
                 )}
+              </td>
+              <td className="px-4 py-3">
+                <div className="flex flex-wrap gap-1">
+                  {rental.bikeNumbers.map((bikeNumber) => (
+                    <span
+                      key={bikeNumber}
+                      className="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700"
+                    >
+                      {bikeNumber}
+                    </span>
+                  ))}
+                </div>
               </td>
               <td className="whitespace-nowrap px-4 py-3">
                 <div className="text-sm text-slate-900">
@@ -134,12 +138,6 @@ export function ActiveRentalsList({ rentals, isLoading }: ActiveRentalsListProps
                 <Badge variant={rental.status === 'OVERDUE' ? 'error' : 'info'}>
                   {rental.status}
                 </Badge>
-              </td>
-              <td className="whitespace-nowrap px-4 py-3">
-                <span className="text-sm text-slate-900">
-                  {rental.bikesOut} / {rental.bikesTotal}
-                </span>
-                <span className="ml-1 text-xs text-slate-500">out</span>
               </td>
             </tr>
           ))}

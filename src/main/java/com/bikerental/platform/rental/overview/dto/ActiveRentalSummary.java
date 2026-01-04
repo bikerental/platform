@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Summary of an active or overdue rental for the overview display.
@@ -20,5 +21,6 @@ public class ActiveRentalSummary {
     private final RentalStatus status;
     private final int bikesOut;
     private final int bikesTotal;
+    private final List<String> bikeNumbers;
 }
 
