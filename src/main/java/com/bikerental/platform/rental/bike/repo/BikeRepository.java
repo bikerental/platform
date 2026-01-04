@@ -35,16 +35,17 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
     /**
      * Find bikes for a hotel, optionally filtered by status and search query (bike number).
      * Search is case-insensitive and matches bike numbers containing the query string.
-     * Sorted by bike_number ASC by default. For OOO bikes, use findOooBikesForExport 
+     * Sorted numerically by bike_number. For OOO bikes, use findOooBikesForExport
      * for proper ooo_since ordering.
      */
-    @Query("SELECT b FROM Bike b WHERE b.hotelId = :hotelId " +
+    @Query(value = "SELECT * FROM bikes b WHERE b.hotel_id = :hotelId " +
            "AND (:status IS NULL OR b.status = :status) " +
-           "AND (:q IS NULL OR LOWER(b.bikeNumber) LIKE LOWER(CONCAT('%', :q, '%'))) " +
-           "ORDER BY b.bikeNumber ASC")
+           "AND (:q IS NULL OR LOWER(b.bike_number) LIKE LOWER(CONCAT('%', :q, '%'))) " +
+           "ORDER BY CAST(b.bike_number AS UNSIGNED) ASC",
+           nativeQuery = true)
     List<Bike> findByHotelIdWithFilters(
             @Param("hotelId") Long hotelId,
-            @Param("status") Bike.BikeStatus status,
+            @Param("status") String status,
             @Param("q") String searchQuery
     );
 
@@ -52,9 +53,10 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
      * Find bikes for a hotel filtered by OOO status, sorted by ooo_since ASC (oldest first),
      * nulls last, then bike_number ASC. Includes optional search query.
      */
-    @Query("SELECT b FROM Bike b WHERE b.hotelId = :hotelId AND b.status = 'OOO' " +
-           "AND (:q IS NULL OR LOWER(b.bikeNumber) LIKE LOWER(CONCAT('%', :q, '%'))) " +
-           "ORDER BY CASE WHEN b.oooSince IS NULL THEN 1 ELSE 0 END, b.oooSince ASC, b.bikeNumber ASC")
+    @Query(value = "SELECT * FROM bikes b WHERE b.hotel_id = :hotelId AND b.status = 'OOO' " +
+           "AND (:q IS NULL OR LOWER(b.bike_number) LIKE LOWER(CONCAT('%', :q, '%'))) " +
+           "ORDER BY CASE WHEN b.ooo_since IS NULL THEN 1 ELSE 0 END, b.ooo_since ASC, CAST(b.bike_number AS UNSIGNED) ASC",
+           nativeQuery = true)
     List<Bike> findOooBikesWithFilters(
             @Param("hotelId") Long hotelId,
             @Param("q") String searchQuery
@@ -64,8 +66,9 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
      * Find all OOO bikes for a hotel, sorted by ooo_since ASC (oldest first), nulls last, then bike_number ASC.
      * Used for maintenance export.
      */
-    @Query("SELECT b FROM Bike b WHERE b.hotelId = :hotelId AND b.status = 'OOO' " +
-           "ORDER BY CASE WHEN b.oooSince IS NULL THEN 1 ELSE 0 END, b.oooSince ASC, b.bikeNumber ASC")
+    @Query(value = "SELECT * FROM bikes b WHERE b.hotel_id = :hotelId AND b.status = 'OOO' " +
+           "ORDER BY CASE WHEN b.ooo_since IS NULL THEN 1 ELSE 0 END, b.ooo_since ASC, CAST(b.bike_number AS UNSIGNED) ASC",
+           nativeQuery = true)
     List<Bike> findOooBikesForExport(@Param("hotelId") Long hotelId);
 }
 
