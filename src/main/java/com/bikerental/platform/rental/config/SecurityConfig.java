@@ -55,7 +55,8 @@ public class SecurityConfig {
             "http://localhost:5175",  // Vite alternative port
             "http://localhost:5176",  // Vite alternative port
             "http://localhost:3000",  // Alternative dev port
-            "http://localhost"        // Docker nginx (port 80)
+            "http://localhost",       // Docker nginx (port 80)
+            "https://app-bikerental-frontend.azurewebsites.net"  // Azure frontend
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
