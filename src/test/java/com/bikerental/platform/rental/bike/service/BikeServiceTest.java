@@ -144,7 +144,7 @@ class BikeServiceTest {
         availableBike.setStatus(Bike.BikeStatus.AVAILABLE);
         
         List<Bike> expectedBikes = Arrays.asList(availableBike);
-        when(bikeRepository.findByHotelIdWithFilters(HOTEL_ID_1, Bike.BikeStatus.AVAILABLE, null))
+        when(bikeRepository.findByHotelIdWithFilters(HOTEL_ID_1, "AVAILABLE", null))
                 .thenReturn(expectedBikes);
 
         // Act
@@ -153,7 +153,7 @@ class BikeServiceTest {
         // Assert
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getStatus()).isEqualTo(Bike.BikeStatus.AVAILABLE);
-        verify(bikeRepository).findByHotelIdWithFilters(HOTEL_ID_1, Bike.BikeStatus.AVAILABLE, null);
+        verify(bikeRepository).findByHotelIdWithFilters(HOTEL_ID_1, "AVAILABLE", null);
     }
 
     @Test

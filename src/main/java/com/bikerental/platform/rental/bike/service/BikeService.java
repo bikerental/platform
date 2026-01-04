@@ -32,7 +32,7 @@ public class BikeService {
             return bikeRepository.findOooBikesWithFilters(hotelId, searchQuery);
         }
         
-        return bikeRepository.findByHotelIdWithFilters(hotelId, status, searchQuery);
+        return bikeRepository.findByHotelIdWithFilters(hotelId, status != null ? status.name() : null, searchQuery);
     }
 
     /**
