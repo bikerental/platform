@@ -1,6 +1,3 @@
----
-alwaysApply: false
----
 # Requirements – Bike Rental System (v1.0)
 
 ## Scope

@@ -4,6 +4,7 @@ import com.bikerental.platform.rental.auth.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -31,8 +32,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/actuator/health/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/v3/api-docs.yaml").permitAll()
                 .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                 .anyRequest().authenticated()
             )
@@ -49,7 +54,9 @@ public class SecurityConfig {
             "http://localhost:5174",  // Vite alternative port
             "http://localhost:5175",  // Vite alternative port
             "http://localhost:5176",  // Vite alternative port
-            "http://localhost:3000"   // Alternative dev port
+            "http://localhost:3000",  // Alternative dev port
+            "http://localhost",       // Docker nginx (port 80)
+            "https://app-bikerental-frontend.azurewebsites.net"  // Azure frontend
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
