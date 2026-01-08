@@ -19,10 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Service for computing overview/dashboard data.
- * Aggregates bike and rental statistics for the current hotel.
- */
+// Aggregates dashboard stats - bike counts and active rentals with overdue detection
 @Service
 @RequiredArgsConstructor
 public class OverviewService {
@@ -32,26 +29,18 @@ public class OverviewService {
     private final HotelContext hotelContext;
     private final HotelSettingsService hotelSettingsService;
 
-    /**
-     * Get overview data for the current hotel.
-     * Includes bike counts by status, rental counts, and active/overdue rentals list.
-     * Overdue status is computed dynamically based on dueAt + grace period.
-     */
     @Transactional(readOnly = true)
     public OverviewResponse getOverview() {
         Long hotelId = hotelContext.getCurrentHotelId();
 
-        // Count bikes by status
         long bikesAvailable = bikeRepository.countByHotelIdAndStatus(hotelId, Bike.BikeStatus.AVAILABLE);
         long bikesRented = bikeRepository.countByHotelIdAndStatus(hotelId, Bike.BikeStatus.RENTED);
         long bikesOoo = bikeRepository.countByHotelIdAndStatus(hotelId, Bike.BikeStatus.OOO);
 
-        // Get active and overdue rentals with dynamically computed status
         int graceMinutes = hotelSettingsService.getGraceMinutes(hotelId);
         Instant overdueThreshold = Instant.now().minusSeconds(graceMinutes * 60L);
         List<ActiveRentalSummary> activeRentals = getActiveRentalsSummary(hotelId, overdueThreshold);
 
-        // Count rentals by computed status
         long rentalsActive = activeRentals.stream()
                 .filter(r -> r.getStatus() == RentalStatus.ACTIVE)
                 .count();
@@ -69,17 +58,12 @@ public class OverviewService {
                 .build();
     }
 
-    /**
-     * Get summary of active and overdue rentals, sorted by urgency.
-     * Overdue status is computed dynamically: overdue if dueAt < overdueThreshold.
-     * Overdue rentals appear first, then sorted by dueAt ascending.
-     */
+    // Fetches rentals and batch-loads bike numbers to avoid N+1 queries
     private List<ActiveRentalSummary> getActiveRentalsSummary(Long hotelId, Instant overdueThreshold) {
         List<RentalStatus> statuses = List.of(RentalStatus.ACTIVE, RentalStatus.OVERDUE);
         List<Rental> rentals = rentalRepository.findActiveAndOverdueOrderedByUrgency(
                 hotelId, statuses, RentalStatus.OVERDUE);
 
-        // Collect all bike IDs from rented items and fetch bike numbers in one query
         List<Long> allBikeIds = rentals.stream()
                 .flatMap(r -> r.getItems().stream())
                 .filter(item -> item.getStatus() == RentalItemStatus.RENTED)
@@ -93,7 +77,6 @@ public class OverviewService {
         return rentals.stream()
                 .map(rental -> toActiveRentalSummary(rental, overdueThreshold, bikeIdToNumber))
                 .sorted((a, b) -> {
-                    // Sort overdue first, then by dueAt ascending
                     if (a.getStatus() == RentalStatus.OVERDUE && b.getStatus() != RentalStatus.OVERDUE) {
                         return -1;
                     }
@@ -105,11 +88,6 @@ public class OverviewService {
                 .toList();
     }
 
-    /**
-     * Convert a Rental entity to ActiveRentalSummary DTO.
-     * Calculates bikesOut (RENTED items) and bikesTotal.
-     * Computes overdue status dynamically based on overdueThreshold.
-     */
     private ActiveRentalSummary toActiveRentalSummary(Rental rental, Instant overdueThreshold,
                                                        Map<Long, String> bikeIdToNumber) {
         List<Long> rentedBikeIds = rental.getItems().stream()
@@ -125,7 +103,6 @@ public class OverviewService {
                 .filter(n -> n != null)
                 .toList();
 
-        // Compute status dynamically: overdue if dueAt is before the threshold
         RentalStatus computedStatus = rental.getDueAt().isBefore(overdueThreshold)
                 ? RentalStatus.OVERDUE
                 : RentalStatus.ACTIVE;

@@ -65,28 +65,28 @@ export ADMIN_PASSWORD_HASH=your-bcrypt-hashed-password
 
 ### 3. Install Dependencies
 
-**Backend:**
 ```bash
 ./mvnw clean install
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm install
+cd frontend && npm install
 ```
 
 ### 4. Run the Application
 
-**Backend** (from project root):
+Use the Makefile for common commands:
+
 ```bash
-./mvnw spring-boot:run
+make run            # Start backend (port 8080)
+make run-frontend   # Start frontend (port 5173)
+make test           # Run backend tests
+make build          # Build production JAR
 ```
 
-**Frontend** (in separate terminal):
+Or use Docker for the full stack:
+
 ```bash
-cd frontend
-npm run dev
+make docker-up      # Start all services (MySQL + backend + frontend)
+make docker-down    # Stop all services
+make docker-logs    # View logs
 ```
 
 The application will be available at:
@@ -118,6 +118,15 @@ platform/
 
 ## Development
 
+| Command | Description |
+|---------|-------------|
+| `make run` | Start backend locally |
+| `make run-frontend` | Start frontend dev server |
+| `make test` | Run backend tests |
+| `make lint` | Lint frontend code |
+| `make docker-up` | Start full stack with Docker |
+| `make docker-mysql` | Connect to MySQL shell |
+
 - Backend runs on port 8080
 - Frontend dev server runs on port 5173
 - API base path: `/api`
@@ -125,34 +134,36 @@ platform/
 
 ## Deployment
 
-### Backend (Production)
+The application is deployed to Azure using GitHub Actions CI/CD.
 
-1. Build the JAR:
+### Architecture
+
+- **Backend**: Azure Web App (Docker container) - `app-bikerental-api`
+- **Frontend**: Azure Web App (Docker container) - `app-bikerental-frontend`
+- **Container Registry**: Azure Container Registry (ACR)
+- **Database**: Azure Database for MySQL
+
+### CI/CD Pipeline
+
+Deployment is triggered manually via GitHub Actions workflow dispatch:
+
 ```bash
-./mvnw clean package -DskipTests
+# From GitHub Actions UI, run the "Deploy to Azure" workflow
+# Select which components to deploy (backend, frontend, or both)
 ```
 
-2. Run with production settings:
+The workflow:
+1. Builds Docker images for backend and frontend
+2. Pushes images to Azure Container Registry
+3. Deploys to Azure Web Apps
+
+### Local Build
+
 ```bash
-java -jar target/rental-service-0.0.1-SNAPSHOT.jar \
-  --spring.profiles.active=prod \
-  --server.port=8080
+make build                    # Build backend JAR
+make docker-build-backend     # Build backend Docker image
+make docker-build-frontend    # Build frontend Docker image
 ```
-
-### Frontend (Production)
-
-1. Update `frontend/.env` with production API URL:
-```bash
-VITE_API_BASE_URL=https://your-api-domain.com/api
-```
-
-2. Build for production:
-```bash
-cd frontend
-npm run build
-```
-
-3. Deploy the `frontend/dist` directory to your web server (Nginx, Apache, etc.)
 
 ### Environment Variables
 

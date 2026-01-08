@@ -43,10 +43,3 @@ Then insert:
 INSERT INTO hotels (hotel_code, hotel_name, password_hash, is_admin, created_at)
 VALUES ('HOTEL1', 'Hotel Name', '$2a$10$...hash...', false, NOW());
 ```
-
-## Security Notes
-
-- Never store plain passwords
-- Never log passwords or hashes
-- Production passwords should come from environment variables or secret management
-- Use HTTPS in production

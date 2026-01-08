@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
+// Bike inventory management - handles status transitions and filtering
 @Service
 @RequiredArgsConstructor
 public class BikeService {
@@ -19,34 +20,23 @@ public class BikeService {
     private final BikeRepository bikeRepository;
     private final HotelContext hotelContext;
 
-    /**
-     * List bikes for the current hotel, optionally filtered by status and search query.
-     * For OOO status, bikes are sorted by ooo_since ASC (oldest first), nulls last.
-     * For other statuses, bikes are sorted by bike_number ASC.
-     */
+    // OOO bikes use different sorting (oldest first) to prioritize maintenance
     public List<Bike> listBikes(Bike.BikeStatus status, String searchQuery) {
         Long hotelId = hotelContext.getCurrentHotelId();
-        
-        // Use specialized query for OOO status to get proper sorting
+
         if (status == Bike.BikeStatus.OOO) {
             return bikeRepository.findOooBikesWithFilters(hotelId, searchQuery);
         }
-        
+
         return bikeRepository.findByHotelIdWithFilters(hotelId, status != null ? status.name() : null, searchQuery);
     }
 
-    /**
-     * Find a bike by bike number within the current hotel.
-     */
     public Bike findByBikeNumber(String bikeNumber) {
         Long hotelId = hotelContext.getCurrentHotelId();
         return bikeRepository.findByHotelIdAndBikeNumber(hotelId, bikeNumber)
                 .orElseThrow(() -> new NotFoundException("Bike not found: " + bikeNumber));
     }
 
-    /**
-     * Find a bike by ID, ensuring it belongs to the current hotel.
-     */
     public Bike findById(Long bikeId) {
         Long hotelId = hotelContext.getCurrentHotelId();
         return bikeRepository.findById(bikeId)
@@ -54,10 +44,6 @@ public class BikeService {
                 .orElseThrow(() -> new NotFoundException("Bike not found: " + bikeId));
     }
 
-    /**
-     * Mark a bike as Out of Order (OOO).
-     * Sets status to OOO, stores the note, and records the timestamp.
-     */
     @Transactional
     public Bike markOoo(Long bikeId, String note) {
         Bike bike = findById(bikeId);
@@ -67,11 +53,6 @@ public class BikeService {
         return bikeRepository.save(bike);
     }
 
-    /**
-     * Mark a bike as available.
-     * Clears OOO fields and sets status to AVAILABLE.
-     * Fails if the bike is currently RENTED (part of an active rental).
-     */
     @Transactional
     public Bike markAvailable(Long bikeId) {
         Bike bike = findById(bikeId);

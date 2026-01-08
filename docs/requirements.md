@@ -26,7 +26,6 @@
   - Not OOO and no RENTED item → bike AVAILABLE.
 - Signature must reflect the final bike list and T&C version at signing time.
 
-> See `db_schema.mdc` for technical constraint implementation details (I1-I5).
 
 ## Design for Forgiveness
 - Per-bike actions (return, mark lost); contract-level return-all when applicable.
@@ -41,9 +40,6 @@
 - **Token lifetime:** 8–12 hours (covers one staff shift); forces daily re-authentication.
 - **HTTPS:** Required in production; JWT must only travel over encrypted connections.
 - **Future:** Individual staff accounts for audit trails (who performed which action). Out of scope for MVP.
-
-> See `api_rules.mdc` for detailed auth handling (401 responses, hotel ID derivation from JWT).
-> See `db_schema.mdc` for password hashing requirements.
 
 ## Home Screen
 - Summary counts scoped to hotel: bikes AVAILABLE/RENTED/OOO; rentals ACTIVE/OVERDUE. Counts refresh after data changes.

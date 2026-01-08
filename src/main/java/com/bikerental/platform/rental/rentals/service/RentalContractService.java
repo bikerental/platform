@@ -21,9 +21,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Service for rental contract generation and signature retrieval.
- */
+// Generates printable HTML contracts with embedded signatures
 @Service
 @RequiredArgsConstructor
 public class RentalContractService {
@@ -33,17 +31,10 @@ public class RentalContractService {
     private final SignatureService signatureService;
     private final HotelContext hotelContext;
 
-    private static final DateTimeFormatter DATE_FORMATTER = 
+    private static final DateTimeFormatter DATE_FORMATTER =
             DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mm a")
                     .withZone(ZoneId.systemDefault());
 
-    /**
-     * Get the signature image data for a rental.
-     *
-     * @param rentalId The rental ID
-     * @return The signature PNG bytes
-     * @throws NotFoundException if rental or signature not found
-     */
     @Transactional(readOnly = true)
     public byte[] getSignatureForRental(Long rentalId) {
         Long hotelId = hotelContext.getCurrentHotelId();
@@ -57,13 +48,6 @@ public class RentalContractService {
         return signature.getSignatureData();
     }
 
-    /**
-     * Generate an HTML contract document for a rental.
-     *
-     * @param rentalId The rental ID
-     * @return The contract as HTML string
-     * @throws NotFoundException if rental not found
-     */
     @Transactional(readOnly = true)
     public String generateContractHtml(Long rentalId) {
         Long hotelId = hotelContext.getCurrentHotelId();
@@ -71,7 +55,6 @@ public class RentalContractService {
         Rental rental = rentalRepository.findByRentalIdAndHotelId(rentalId, hotelId)
                 .orElseThrow(() -> new NotFoundException("Rental not found: " + rentalId));
 
-        // Fetch bikes for item details
         List<Long> bikeIds = rental.getItems().stream()
                 .map(RentalItem::getBikeId)
                 .collect(Collectors.toList());
@@ -79,7 +62,6 @@ public class RentalContractService {
         Map<Long, Bike> bikeMap = bikeRepository.findAllById(bikeIds).stream()
                 .collect(Collectors.toMap(Bike::getBikeId, Function.identity()));
 
-        // Get signature as base64 for embedding
         String signatureBase64 = "";
         try {
             Signature signature = signatureService.getSignature(rental.getSignatureId(), hotelId)
@@ -88,15 +70,12 @@ public class RentalContractService {
                 signatureBase64 = Base64.getEncoder().encodeToString(signature.getSignatureData());
             }
         } catch (Exception e) {
-            // Signature not found, continue without it
+            // Signature unavailable
         }
 
         return buildContractHtml(rental, bikeMap, signatureBase64);
     }
 
-    /**
-     * Build the HTML contract document.
-     */
     private String buildContractHtml(Rental rental, Map<Long, Bike> bikeMap, String signatureBase64) {
         StringBuilder html = new StringBuilder();
         
@@ -219,7 +198,6 @@ public class RentalContractService {
         }
         html.append("  </div>\n");
 
-        // Terms & Conditions
         html.append("  <div class=\"tnc\">\n");
         html.append("    <h3>Terms & Conditions (v").append(escapeHtml(rental.getTncVersion())).append(")</h3>\n");
         html.append("    <p>By signing this contract, the guest agrees to the following terms:</p>\n");
@@ -237,9 +215,6 @@ public class RentalContractService {
         return html.toString();
     }
 
-    /**
-     * Escape HTML special characters to prevent XSS.
-     */
     private String escapeHtml(String input) {
         if (input == null) return "";
         return input

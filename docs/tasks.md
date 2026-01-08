@@ -1,8 +1,5 @@
 # Implementation Plan – Bike Rental System (MVP)
 
-> This checklist derives from the design docs (requirements.mdc, db_schema.mdc, api_endpoints.mdc).  
-> Each item maps to one or more spec requirements. Prioritize top-to-bottom; core features first.
-
 ---
 
 ## Phase 1: Project Setup & Infrastructure
@@ -308,7 +305,7 @@
 
 ## Admin Feature (Added)
 
-> Hotel management via admin API. See `docs/admin_api.md` for full documentation.
+> Hotel management via admin API. See `docs/api_spec.yaml` for full documentation.
 
 - [x] Admin authentication (via config-based credentials)
 - [x] Role-based access control (ROLE_ADMIN vs ROLE_HOTEL)
