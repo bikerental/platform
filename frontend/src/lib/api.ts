@@ -5,6 +5,23 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
 const TOKEN_KEY = 'auth_token'
+const HOTEL_NAME_KEY = 'hotel_name'
+
+/**
+ * Check if a JWT token is expired by decoding the payload
+ */
+function isTokenExpired(token: string): boolean {
+  try {
+    let base64 = token.split('.')[1]
+      .replace(/-/g, '+')
+      .replace(/_/g, '/')
+    while (base64.length % 4) base64 += '='
+    const payload = JSON.parse(atob(base64))
+    return payload.exp * 1000 < Date.now()
+  } catch {
+    return true
+  }
+}
 
 /**
  * Helper to build API endpoint URLs
@@ -16,9 +33,16 @@ export function apiUrl(path: string): string {
 
 /**
  * Get stored auth token (used by HTTP client for auth header)
+ * Returns null if token is missing or expired
  */
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
+  const token = localStorage.getItem(TOKEN_KEY)
+  if (token && isTokenExpired(token)) {
+    clearToken()
+    localStorage.removeItem(HOTEL_NAME_KEY)
+    return null
+  }
+  return token
 }
 
 /**
@@ -79,6 +103,7 @@ export async function apiFetch<T>(
   // Handle 401 - unauthorized
   if (response.status === 401) {
     clearToken()
+    localStorage.removeItem(HOTEL_NAME_KEY)
     window.location.href = '/login'
     throw new Error('Session expired. Please login again.')
   }
