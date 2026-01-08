@@ -1,4 +1,4 @@
-# Implementation Plan – Bike Rental System (MVP)
+# Implementation Plan (MVP) 
 
 ---
 
@@ -359,6 +359,3 @@
 | 15. Testing | Not started | |
 
 ---
-
-*Tip: Treat each numbered item as a potential commit. Check off items as you complete them. Update the Progress Tracking table after completing each phase.*
-
