@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// Aggregates dashboard stats - bike counts and active rentals with overdue detection
 @Service
 @RequiredArgsConstructor
 public class OverviewService {
@@ -29,6 +28,7 @@ public class OverviewService {
     private final HotelContext hotelContext;
     private final HotelSettingsService hotelSettingsService;
 
+    /** Aggregates bike counts and active rentals with overdue detection based on hotel's grace period. */
     @Transactional(readOnly = true)
     public OverviewResponse getOverview() {
         Long hotelId = hotelContext.getCurrentHotelId();
@@ -58,7 +58,7 @@ public class OverviewService {
                 .build();
     }
 
-    // Fetches rentals and batch-loads bike numbers to avoid N+1 queries
+    /** Batch-loads bike numbers to avoid N+1, sorts overdue first then by due date. */
     private List<ActiveRentalSummary> getActiveRentalsSummary(Long hotelId, Instant overdueThreshold) {
         List<RentalStatus> statuses = List.of(RentalStatus.ACTIVE, RentalStatus.OVERDUE);
         List<Rental> rentals = rentalRepository.findActiveAndOverdueOrderedByUrgency(
