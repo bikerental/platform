@@ -30,16 +30,10 @@ public class JwtService {
         this.expirationHours = expirationHours;
     }
 
-    /**
-     * Generate a JWT token for a hotel (ROLE_HOTEL).
-     */
     public String generateToken(Long hotelId, String hotelCode) {
         return generateToken(hotelId, hotelCode, ROLE_HOTEL);
     }
 
-    /**
-     * Generate a JWT token for admin (ROLE_ADMIN).
-     */
     public String generateAdminToken(String username) {
         Instant now = Instant.now();
         Instant expiry = now.plus(expirationHours, ChronoUnit.HOURS);
@@ -54,9 +48,6 @@ public class JwtService {
                 .compact();
     }
 
-    /**
-     * Generate a JWT token with specified role.
-     */
     public String generateToken(Long hotelId, String hotelCode, String role) {
         Instant now = Instant.now();
         Instant expiry = now.plus(expirationHours, ChronoUnit.HOURS);
@@ -71,10 +62,7 @@ public class JwtService {
                 .compact();
     }
 
-    /**
-     * Validate token and extract claims.
-     * @return Optional.empty() if token is invalid or expired
-     */
+    /** Validates signature and expiration, returns empty if token is invalid or expired. */
     public Optional<Claims> validateAndExtractClaims(String token) {
         try {
             Claims claims = Jwts.parser()
@@ -88,23 +76,14 @@ public class JwtService {
         }
     }
 
-    /**
-     * Extract hotel ID from valid claims.
-     */
     public Long extractHotelId(Claims claims) {
         return Long.parseLong(claims.getSubject());
     }
 
-    /**
-     * Extract hotel code from valid claims.
-     */
     public String extractHotelCode(Claims claims) {
         return claims.get("hotelCode", String.class);
     }
 
-    /**
-     * Extract role from valid claims. Defaults to ROLE_HOTEL for backwards compatibility.
-     */
     public String extractRole(Claims claims) {
         String role = claims.get("role", String.class);
         return role != null ? role : ROLE_HOTEL;

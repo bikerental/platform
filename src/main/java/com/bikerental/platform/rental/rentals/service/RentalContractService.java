@@ -10,6 +10,7 @@ import com.bikerental.platform.rental.rentals.repo.RentalRepository;
 import com.bikerental.platform.rental.signature.model.Signature;
 import com.bikerental.platform.rental.signature.service.SignatureService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// Generates printable HTML contracts with embedded signatures
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RentalContractService {
@@ -70,7 +71,7 @@ public class RentalContractService {
                 signatureBase64 = Base64.getEncoder().encodeToString(signature.getSignatureData());
             }
         } catch (Exception e) {
-            // Signature unavailable
+            log.warn("Failed to load signature for rental {}: {}", rentalId, e.getMessage());
         }
 
         return buildContractHtml(rental, bikeMap, signatureBase64);

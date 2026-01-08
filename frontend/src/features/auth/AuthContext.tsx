@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { 
   login as authLogin, 
@@ -39,6 +39,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading: false,
     })
   }, [])
+
+  // Proactively check token validity and logout when expired
+  useEffect(() => {
+    if (!state.isAuthenticated) return
+
+    const checkTokenValidity = () => {
+      if (!checkAuth()) {
+        logout()
+      }
+    }
+
+    const interval = setInterval(checkTokenValidity, 10000)
+    return () => clearInterval(interval)
+  }, [state.isAuthenticated, logout])
 
   return (
     <AuthContext.Provider value={{ ...state, login, logout }}>

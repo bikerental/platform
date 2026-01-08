@@ -12,26 +12,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class HotelContext {
 
-    /**
-     * Get the current authenticated hotel's ID.
-     * @throws IllegalStateException if no authenticated hotel in context
-     */
     public Long getCurrentHotelId() {
         return getCurrentPrincipal().getHotelId();
     }
 
-    /**
-     * Get the current authenticated hotel's code.
-     * @throws IllegalStateException if no authenticated hotel in context
-     */
     public String getCurrentHotelCode() {
         return getCurrentPrincipal().getHotelCode();
     }
 
-    /**
-     * Get the full hotel principal from security context.
-     * @throws IllegalStateException if no authenticated hotel in context
-     */
+    /** Extracts principal from Spring SecurityContext, throws if not authenticated or wrong type. */
     public HotelPrincipal getCurrentPrincipal() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -49,9 +38,6 @@ public class HotelContext {
         return (HotelPrincipal) principal;
     }
 
-    /**
-     * Check if there is an authenticated hotel in the current context.
-     */
     public boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null
