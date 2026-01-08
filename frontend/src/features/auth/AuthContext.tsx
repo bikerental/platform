@@ -40,22 +40,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  // Proactively check token validity and redirect to login when expired
+  // Proactively check token validity and logout when expired
   useEffect(() => {
+    if (!state.isAuthenticated) return
+
     const checkTokenValidity = () => {
-      const stillValid = checkAuth()
-      if (!stillValid && state.isAuthenticated) {
-        setState({
-          isAuthenticated: false,
-          hotelName: null,
-          isLoading: false,
-        })
+      if (!checkAuth()) {
+        logout()
       }
     }
 
-    const interval = setInterval(checkTokenValidity, 10000) // Check every 10 sec
+    const interval = setInterval(checkTokenValidity, 10000)
     return () => clearInterval(interval)
-  }, [state.isAuthenticated])
+  }, [state.isAuthenticated, logout])
 
   return (
     <AuthContext.Provider value={{ ...state, login, logout }}>
