@@ -12,7 +12,11 @@ const HOTEL_NAME_KEY = 'hotel_name'
  */
 function isTokenExpired(token: string): boolean {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    let base64 = token.split('.')[1]
+      .replace(/-/g, '+')
+      .replace(/_/g, '/')
+    while (base64.length % 4) base64 += '='
+    const payload = JSON.parse(atob(base64))
     return payload.exp * 1000 < Date.now()
   } catch {
     return true
